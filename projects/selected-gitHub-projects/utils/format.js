@@ -24,6 +24,26 @@ function formatGrowth(value) {
   return `+${formatCompactNumber(value)} stars`;
 }
 
+function formatUpdatedAt(value) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  const hours = `${date.getHours()}`.padStart(2, "0");
+  const minutes = `${date.getMinutes()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
 function formatPeriodLabel(period) {
   const labelMap = {
     daily: "日榜",
@@ -41,6 +61,7 @@ function withLanguageFallback(value) {
 module.exports = {
   formatCompactNumber,
   formatGrowth,
+  formatUpdatedAt,
   formatPeriodLabel,
   withLanguageFallback
 };

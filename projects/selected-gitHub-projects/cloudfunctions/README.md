@@ -8,6 +8,8 @@
   从 GitHub API 抓取候选仓库，写入 `repositories` 和 `star_snapshots`
 - `calculateRankings`
   基于仓库信息和 star 快照计算 `daily` / `weekly` / `monthly` 榜单，写入 `ranking_snapshots`
+- `generateRepoSummaries`
+  为仓库补齐 `summaryZh`、`whatItDoes`、`highlights`、`useCases` 等结构化中文摘要字段
 - `getRankings`
   给小程序榜单页提供榜单数据
 - `getRepoDetail`
@@ -33,7 +35,9 @@
 7. 手动调用一次 `syncGithubRepos`
 8. 部署 `calculateRankings`
 9. 手动调用一次 `calculateRankings`
-10. 回到小程序前端验证榜单和详情已经开始使用真实同步数据
+10. 部署 `generateRepoSummaries`
+11. 先用小批量参数手动调用一次 `generateRepoSummaries`
+12. 回到小程序前端验证榜单和详情已经开始使用真实同步数据
 
 ## Notes
 
@@ -41,5 +45,6 @@
 - `syncGithubRepos` 支持通过事件参数覆盖默认抓取配置：`queries`、`perPage`、`maxRepos`、`dryRun`。
 - `syncGithubRepos` 第一次联调建议把云函数超时时间调到 `10s` 或更高；默认 `3s` 很容易在访问 GitHub API 和写数据库时超时。
 - 如果只是验证 token 和网络是否正常，先用 `{"dryRun": true, "perPage": 3, "maxRepos": 3}` 做一次轻量测试。
+- `generateRepoSummaries` 当前是规则生成版，不依赖额外模型密钥；会优先处理当前 `daily / weekly / monthly` 榜单里的仓库，再补其它仓库。
 - 当前详情页已经对缺失的中文摘要、亮点、使用场景做了兜底，所以真实仓库先接入时页面不会直接空白。
-- 如果后续要完全摆脱种子数据，下一步建议补 `generateRepoSummaries`，把 `summaryZh`、`whatItDoes`、`highlights`、`useCases` 这条链补齐。
+- 如果后续要继续升级摘要质量，可以把 `generateRepoSummaries` 从规则生成版替换成大模型生成版。

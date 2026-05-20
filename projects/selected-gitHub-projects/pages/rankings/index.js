@@ -1,5 +1,5 @@
 const { getRankings } = require("../../services/repo-service");
-const { formatPeriodLabel } = require("../../utils/format");
+const { formatPeriodLabel, formatUpdatedAt } = require("../../utils/format");
 const { getFavoriteMap, toggleFavorite } = require("../../utils/favorites");
 
 Page({
@@ -85,7 +85,7 @@ Page({
         }));
 
         this.setData({
-          updatedAt: result.updatedAt,
+          updatedAt: formatUpdatedAt(result.updatedAt),
           items,
           loading: false,
           errorMessage: "",
