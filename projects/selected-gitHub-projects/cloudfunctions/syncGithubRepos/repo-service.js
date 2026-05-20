@@ -7,6 +7,7 @@ const COLLECTIONS = {
 };
 
 const DEFAULT_PERIODS = ["daily", "weekly", "monthly"];
+const PERIOD_FETCH_BUDGET_MS = 12000;
 
 function getGithubToken() {
   return process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "";
@@ -175,6 +176,17 @@ function serializePeriodError(error) {
   };
 }
 
+function withDeadline(taskPromise, timeoutMs, label) {
+  return Promise.race([
+    taskPromise,
+    new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error(`${label} exceeded ${timeoutMs}ms budget`));
+      }, timeoutMs);
+    })
+  ]);
+}
+
 async function fetchTrendingPayload(options = {}) {
   const periods = normalizePeriods(options.periods);
   const maxRepos = Math.min(Math.max(Number(options.maxRepos) || 10, 1), 25);
@@ -185,7 +197,11 @@ async function fetchTrendingPayload(options = {}) {
   const groupResults = await Promise.allSettled(
     periods.map(async (period) => ({
       period,
-      items: await fetchTrendingRepositories({ since: period, maxRepos })
+      items: await withDeadline(
+        fetchTrendingRepositories({ since: period, maxRepos }),
+        PERIOD_FETCH_BUDGET_MS,
+        `Trending fetch for ${period}`
+      )
     }))
   );
   const trendingGroups = [];

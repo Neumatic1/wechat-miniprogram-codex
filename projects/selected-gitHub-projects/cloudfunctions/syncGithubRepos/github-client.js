@@ -132,7 +132,7 @@ async function fetchTrendingRepositories({ since, maxRepos }) {
       const html = await request(`/trending?since=${encodeURIComponent(since)}`, "", {
         hostname: "github.com",
         accept: "text/html",
-        timeoutMs: 15000
+        timeoutMs: 8000
       });
 
       return parseTrendingArticles(html, since, maxRepos);
