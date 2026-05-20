@@ -2,72 +2,68 @@
 
 更新日期：2026-05-20
 
-## 阶段目标
+## 当前阶段
 
-从需求/原型阶段进入开发阶段，优先完成一个可在微信开发者工具中直接打开的原生小程序 MVP 前端骨架，为后续云开发接口接入预留清晰边界。
+项目已进入开发实现阶段，当前目标是把“小程序前端 + 云端数据链路 + 中文摘要链路”连成可观测的最小闭环。
 
-## 本次落地内容
+## 已完成内容
 
-- 新建原生微信小程序工程基础配置：`project.config.json`、`app.json`、`app.js`、`app.wxss`、`sitemap.json`
-- 新建自定义底部导航 `custom-tab-bar/`，支持“榜单 / 收藏”双入口
-- 实现三页结构：
-  - `pages/rankings/index`：日榜 / 周榜 / 月榜切换、列表展示、骨架屏、空态、错误态
-  - `pages/detail/index`：中文摘要、用途、亮点、适用场景、复制链接、收藏
-  - `pages/favorites/index`：本地收藏列表、取消收藏、复制链接
-- 抽离可复用组件：
-  - `components/repo-card/`
-  - `components/status-view/`
-- 建立前端数据访问边界：
-  - `services/repo-service.js` 统一封装榜单与详情获取
-  - 当前默认 `USE_MOCK_DATA = true`
-  - 后续真实云函数接入时只需替换服务层
-- 建立本地收藏能力：
-  - `utils/favorites.js`
-  - 使用小程序本地缓存保存收藏项目
-- 建立第一批 mock 数据：
-  - `utils/mock-data.js`
-  - 覆盖日榜 / 周榜 / 月榜与详情字段
-- 新建 `cloudfunctions/README.md`，明确后端接入顺序与前端切换点
+- 初始化原生微信小程序工程：
+  `app.js`、`app.json`、`app.wxss`、`project.config.json`
+- 搭建页面与组件骨架：
+  `pages/rankings`
+  `pages/detail`
+  `pages/favorites`
+  `components/repo-card`
+  `components/status-view`
+- 建立前端统一数据访问层：
+  `services/repo-service.js`
+- 接入第一批云函数：
+  `seedMockData`
+  `syncGithubRepos`
+  `calculateRankings`
+  `getRankings`
+  `getRepoDetail`
+- 增加 `generateRepoSummaries` 云函数，用于补齐详情页所需的中文摘要字段
 
-## 云开发配置补充
+## 今天新增
 
-- 已确认小程序 AppID：`wx8b4129374dc126b5`
-- 新增 `config/cloud.js` 作为前端云开发配置入口
-- `app.js` 已改为基于 `config/cloud.js` 初始化云开发
-- `services/repo-service.js` 已支持通过 `useCloud` 开关在 mock / 云函数之间切换
-- 新增第一批云函数骨架：
-  - `cloudfunctions/getRankings`
-  - `cloudfunctions/getRepoDetail`
-- 新增 `cloudfunctions/shared/` 共享数据与服务逻辑，便于后续替换为真实数据库实现
+### 1. 首批摘要能力落地并已推送
 
-## 当前云开发状态
+- 新增 `cloudfunctions/generateRepoSummaries/`
+- 新增榜单更新时间格式化能力
+- 调整仓库卡片标题换行，避免长仓库名挤压布局
+- 更新 `cloudfunctions/README.md`，补充摘要函数部署顺序
 
-现在项目已经具备“可部署云函数 + 可切换前端调用”的结构，但还差两步才能真正切到云端：
+### 2. 云端回退升级为可观测模式
 
-1. 你在云开发控制台创建环境并拿到 `envId`
-2. 把 `config/cloud.js` 中的 `envId` 填上，并将 `useCloud` 改为 `true`
+- `cloudfunctions/getRankings/repo-service.js`
+- `cloudfunctions/getRepoDetail/repo-service.js`
+- `services/repo-service.js`
 
-## 云数据库联调升级
+改动说明：
 
-- `getRankings`、`getRepoDetail` 已升级为：
-  - 优先读取云数据库
-  - 数据不存在时自动回退到静态 mock
-- 新增 `seedMockData` 云函数，用于初始化：
-  - `repositories`
-  - `ranking_snapshots`
-- 这样后续可以先用 `seedMockData` 打通数据库读链路，再逐步替换成真实 GitHub 抓取与计算逻辑
+- 数据库读取成功时，返回 `meta.source = cloud-db`
+- 数据库读取失败但可回退到 mock 时，返回 `meta.source = mock-fallback`
+- 回退结果会带上 `reasonCode`、`reasonMessage`、`observedAt` 和序列化后的 `error`
+- 前端榜单页与详情页会显式展示“当前展示的是 Mock 回退数据”，不再静默掩盖云端异常
 
-## 当前状态
+### 3. 摘要链升级为大模型版本
 
-目前已经具备一个可运行的前端 MVP 雏形，适合下一步继续推进：
+- `cloudfunctions/generateRepoSummaries/repo-service.js`
 
-1. 在微信开发者工具中打开工程并检查视觉和交互
-2. 根据真机效果微调布局与字体密度
-3. 开始实现云开发数据库结构与 `getRankings` / `getRepoDetail`
-4. 用真实数据替换 mock 数据
+改动说明：
 
-## 后续建议
+- 通过 OpenAI 兼容接口调用真实模型生成中文摘要
+- 支持环境变量：
+  `REPO_SUMMARY_API_KEY`
+  `REPO_SUMMARY_MODEL`
+  `REPO_SUMMARY_BASE_URL`
+  `REPO_SUMMARY_ALLOW_RULE_FALLBACK`
+- 模型失败时允许回退到规则版摘要，但会把来源与失败原因写入仓库字段，便于追踪
 
-- 优先补齐云函数与数据库结构，打通前后端最小闭环
-- 再补充榜单刷新策略、摘要缺失回退和异常监控
-- 如果要进入联调阶段，可以先保留 mock 兜底，再逐个接口切换
+## 当前风险与待办
+
+- `generateRepoSummaries` 需要在微信云开发控制台配置摘要模型环境变量后，才能走真正的模型链路
+- 目前尚未在真实云环境完成 `getRankings/getRepoDetail` 的异常回退联调，需要在开发者工具中验证前端提示条是否符合预期
+- 如果后续要进一步提升摘要质量，可以考虑补充 README 抓取、主页链接、最近 release 等更丰富的输入上下文

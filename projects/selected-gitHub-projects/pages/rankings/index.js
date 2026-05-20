@@ -16,7 +16,9 @@ Page({
     items: [],
     favoriteMap: {},
     loading: true,
-    errorMessage: ""
+    errorMessage: "",
+    observableNotice: "",
+    observableNoticeTone: ""
   },
 
   onLoad() {
@@ -61,25 +63,24 @@ Page({
   },
 
   loadRankings(period, withLoading = true) {
+    const nextState = {
+      currentPeriod: period,
+      periodLabel: formatPeriodLabel(period),
+      errorMessage: ""
+    };
+
     if (withLoading) {
-      this.setData({
-        loading: true,
-        errorMessage: "",
-        currentPeriod: period,
-        periodLabel: formatPeriodLabel(period)
-      });
-    } else {
-      this.setData({
-        currentPeriod: period,
-        periodLabel: formatPeriodLabel(period),
-        errorMessage: ""
-      });
+      nextState.loading = true;
+      nextState.observableNotice = "";
+      nextState.observableNoticeTone = "";
     }
+
+    this.setData(nextState);
 
     getRankings(period)
       .then((result) => {
         const favoriteMap = getFavoriteMap();
-        const items = result.items.map((item) => ({
+        const items = (result.items || []).map((item) => ({
           ...item,
           isFavorite: Boolean(favoriteMap[item.repoId])
         }));
@@ -89,7 +90,9 @@ Page({
           items,
           loading: false,
           errorMessage: "",
-          favoriteMap
+          favoriteMap,
+          observableNotice: result.observableNotice || "",
+          observableNoticeTone: result.observableNoticeTone || ""
         });
       })
       .catch((error) => {

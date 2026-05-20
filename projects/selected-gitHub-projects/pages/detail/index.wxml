@@ -35,9 +35,17 @@
       </view>
     </view>
 
+    <view
+      wx:if="{{observableNotice}}"
+      class="observable-banner observable-banner--{{observableNoticeTone || 'info'}}"
+    >
+      <text class="observable-banner__label">数据来源提示</text>
+      <text class="observable-banner__text">{{observableNotice}}</text>
+    </view>
+
     <view class="section glass-card">
       <text class="section-title">一句话介绍</text>
-      <text class="body-text">{{repo.summaryZh || '中文介绍生成中，请稍后再来看。'}}</text>
+      <text class="body-text">{{repo.summaryZh || '中文摘要生成中，请稍后再来查看。'}}</text>
     </view>
 
     <view class="section glass-card">
@@ -53,7 +61,7 @@
           <text class="body-text bullet-text">{{item}}</text>
         </view>
       </view>
-      <text wx:else class="body-text">Structured highlights are not available yet. Check the repo description and GitHub link first.</text>
+      <text wx:else class="body-text">亮点摘要还不可用，建议先查看仓库描述和 GitHub 链接。</text>
     </view>
 
     <view class="section glass-card">
@@ -64,7 +72,7 @@
           <text class="body-text bullet-text">{{item}}</text>
         </view>
       </view>
-      <text wx:else class="body-text">Use cases are not available yet. They can be filled in after the summary pipeline is added.</text>
+      <text wx:else class="body-text">适用场景还没有生成，可以在摘要链补齐后回来看。</text>
     </view>
 
     <view class="section glass-card">

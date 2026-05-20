@@ -117,24 +117,111 @@ function callCloudFunction(name, data) {
   });
 }
 
-function getRankings(period) {
-  if (shouldUseMockData()) {
-    return getMockRankings(period);
+function normalizeMeta(meta, fallbackMeta) {
+  const defaults = Object.assign(
+    {
+      source: "cloud",
+      usedFallback: false,
+      reasonCode: "",
+      reasonMessage: "",
+      observedAt: "",
+      error: null
+    },
+    fallbackMeta || {}
+  );
+
+  return Object.assign(defaults, meta || {});
+}
+
+function buildObservableNotice(meta) {
+  if (!meta || meta.source === "cloud-db") {
+    return {
+      text: "",
+      tone: ""
+    };
   }
 
-  return callCloudFunction(cloudConfig.functions.getRankings, { period }).then((result) => ({
-    ...result,
-    items: normalizeRankingItems(result.items, period)
-  }));
+  if (meta.source === "local-mock") {
+    return {
+      text: "当前处于本地 Mock 模式，页面还没有读取云端数据。",
+      tone: "info"
+    };
+  }
+
+  if (meta.source === "mock-fallback") {
+    const reason = meta.reasonMessage ? `原因：${meta.reasonMessage}` : "原因：云端链路不可用";
+    return {
+      text: `当前展示的是 Mock 回退数据。${reason}`,
+      tone: "warning"
+    };
+  }
+
+  return {
+    text: meta.reasonMessage || "",
+    tone: meta.usedFallback ? "warning" : "info"
+  };
+}
+
+function attachObservableFields(payload, metaDefaults) {
+  const meta = normalizeMeta(payload && payload.meta, metaDefaults);
+  const notice = buildObservableNotice(meta);
+
+  return Object.assign({}, payload, {
+    meta,
+    observableNotice: notice.text,
+    observableNoticeTone: notice.tone
+  });
+}
+
+function normalizeRankingResponse(result, period, metaDefaults) {
+  const payload = attachObservableFields(result || {}, metaDefaults);
+
+  return Object.assign({}, payload, {
+    updatedAt: payload.updatedAt || "",
+    items: normalizeRankingItems(payload.items || [], period)
+  });
+}
+
+function normalizeRepoResponse(result, metaDefaults) {
+  const payload = attachObservableFields(result || {}, metaDefaults);
+  return normalizeRepoDetail(payload);
+}
+
+function getRankings(period) {
+  if (shouldUseMockData()) {
+    return getMockRankings(period).then((result) =>
+      normalizeRankingResponse(result, period, {
+        source: "local-mock",
+        usedFallback: false,
+        reasonCode: "CLOUD_DISABLED",
+        reasonMessage: "config/cloud.js 当前配置为本地 mock 模式"
+      })
+    );
+  }
+
+  return callCloudFunction(cloudConfig.functions.getRankings, { period }).then((result) =>
+    normalizeRankingResponse(result, period, {
+      source: "cloud-db"
+    })
+  );
 }
 
 function getRepoDetail(repoId) {
   if (shouldUseMockData()) {
-    return getMockRepoDetail(repoId);
+    return getMockRepoDetail(repoId).then((repo) =>
+      normalizeRepoResponse(repo, {
+        source: "local-mock",
+        usedFallback: false,
+        reasonCode: "CLOUD_DISABLED",
+        reasonMessage: "config/cloud.js 当前配置为本地 mock 模式"
+      })
+    );
   }
 
   return callCloudFunction(cloudConfig.functions.getRepoDetail, { repoId }).then((result) =>
-    normalizeRepoDetail(result)
+    normalizeRepoResponse(result, {
+      source: "cloud-db"
+    })
   );
 }
 

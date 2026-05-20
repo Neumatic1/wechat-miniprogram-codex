@@ -7,7 +7,9 @@ Page({
     repo: null,
     loading: true,
     errorMessage: "",
-    favorite: false
+    favorite: false,
+    observableNotice: "",
+    observableNoticeTone: ""
   },
 
   onLoad(options) {
@@ -34,7 +36,9 @@ Page({
 
     this.setData({
       loading: true,
-      errorMessage: ""
+      errorMessage: "",
+      observableNotice: "",
+      observableNoticeTone: ""
     });
 
     getRepoDetail(repoId)
@@ -42,7 +46,9 @@ Page({
         this.setData({
           repo,
           favorite: isFavorite(repoId),
-          loading: false
+          loading: false,
+          observableNotice: repo.observableNotice || "",
+          observableNoticeTone: repo.observableNoticeTone || ""
         });
       })
       .catch((error) => {

@@ -11,6 +11,41 @@ const repositoryMap = repositories.reduce((accumulator, repo) => {
   return accumulator;
 }, {});
 
+function createObservableError(code, message, details) {
+  const error = new Error(message);
+  error.code = code;
+  error.details = details || null;
+  return error;
+}
+
+function serializeError(error) {
+  if (!error) {
+    return null;
+  }
+
+  return {
+    name: error.name || "Error",
+    code: error.code || "",
+    message: error.message || String(error),
+    details: error.details || null
+  };
+}
+
+function buildMeta(options) {
+  return {
+    source: options.source,
+    usedFallback: Boolean(options.usedFallback),
+    reasonCode: options.reasonCode || "",
+    reasonMessage: options.reasonMessage || "",
+    observedAt: options.observedAt || new Date().toISOString(),
+    error: serializeError(options.error)
+  };
+}
+
+function withMeta(payload, meta) {
+  return Object.assign({}, payload, { meta });
+}
+
 function getMockRankings(period) {
   const rankingList = rankings[period] || [];
   const items = rankingList
@@ -39,7 +74,7 @@ function getMockRepoDetail(repoId) {
   const repo = repositoryMap[repoId];
 
   if (!repo) {
-    throw new Error("项目不存在");
+    throw createObservableError("MOCK_REPO_NOT_FOUND", "项目不存在", { repoId });
   }
 
   const rankingInfo = Object.keys(rankings).reduce((accumulator, period) => {
@@ -59,11 +94,23 @@ function getMockRepoDetail(repoId) {
 }
 
 async function getRankingsFromDb(period, db) {
-  const rankingDoc = await db.collection(COLLECTIONS.rankingSnapshots).doc(period).get();
+  let rankingDoc;
+
+  try {
+    rankingDoc = await db.collection(COLLECTIONS.rankingSnapshots).doc(period).get();
+  } catch (error) {
+    throw createObservableError("RANKING_DOC_READ_FAILED", `读取 ${period} 榜单快照失败`, {
+      period,
+      originalMessage: error.message || String(error)
+    });
+  }
+
   const snapshot = rankingDoc.data;
 
   if (!snapshot || !Array.isArray(snapshot.items) || !snapshot.items.length) {
-    throw new Error(`数据库中缺少 ${period} 榜单数据`);
+    throw createObservableError("RANKING_SNAPSHOT_EMPTY", `数据库中缺少 ${period} 榜单数据`, {
+      period
+    });
   }
 
   const repoIds = snapshot.items.map((item) => item.repoId).filter(Boolean);
@@ -73,7 +120,12 @@ async function getRankingsFromDb(period, db) {
       .doc(repoId)
       .get()
       .then((result) => result.data)
-      .catch(() => null)
+      .catch((error) => {
+        throw createObservableError("RANKING_REPO_READ_FAILED", `读取仓库详情失败: ${repoId}`, {
+          repoId,
+          originalMessage: error.message || String(error)
+        });
+      })
   );
 
   const repoList = await Promise.all(repoFetches);
@@ -82,21 +134,22 @@ async function getRankingsFromDb(period, db) {
     return accumulator;
   }, {});
 
-  const items = snapshot.items
-    .map((item, index) => {
-      const repo = repoById[item.repoId];
+  const missingRepoIds = repoIds.filter((repoId) => !repoById[repoId]);
 
-      if (!repo) {
-        return null;
-      }
+  if (missingRepoIds.length) {
+    throw createObservableError("RANKING_REPO_MISSING", "榜单关联的仓库详情不完整", {
+      period,
+      missingRepoIds
+    });
+  }
 
-      return Object.assign({}, repo, {
-        rank: item.rank || index + 1,
-        rankType: snapshot.rankType || period,
-        starGrowth: item.starGrowth || 0
-      });
+  const items = snapshot.items.map((item, index) =>
+    Object.assign({}, repoById[item.repoId], {
+      rank: item.rank || index + 1,
+      rankType: snapshot.rankType || period,
+      starGrowth: item.starGrowth || 0
     })
-    .filter(Boolean);
+  );
 
   return {
     updatedAt: snapshot.updatedAt || "",
@@ -105,11 +158,21 @@ async function getRankingsFromDb(period, db) {
 }
 
 async function getRepoDetailFromDb(repoId, db) {
-  const repoResult = await db.collection(COLLECTIONS.repositories).doc(repoId).get();
+  let repoResult;
+
+  try {
+    repoResult = await db.collection(COLLECTIONS.repositories).doc(repoId).get();
+  } catch (error) {
+    throw createObservableError("REPO_DETAIL_READ_FAILED", `读取仓库详情失败: ${repoId}`, {
+      repoId,
+      originalMessage: error.message || String(error)
+    });
+  }
+
   const repo = repoResult.data;
 
   if (!repo) {
-    throw new Error("项目不存在");
+    throw createObservableError("REPO_DETAIL_NOT_FOUND", "项目不存在", { repoId });
   }
 
   const rankingInfo = {};
@@ -129,7 +192,11 @@ async function getRepoDetailFromDb(repoId, db) {
           rankingInfo[period] = record.starGrowth || 0;
         }
       } catch (error) {
-        // Ignore missing ranking docs and fall back to whatever periods are available.
+        throw createObservableError("REPO_RANKING_READ_FAILED", `读取 ${period} 榜单失败`, {
+          period,
+          repoId,
+          originalMessage: error.message || String(error)
+        });
       }
     })
   );
@@ -142,25 +209,63 @@ async function getRepoDetailFromDb(repoId, db) {
 
 async function getRankings(period, db) {
   if (!db) {
-    return getMockRankings(period);
+    return withMeta(getMockRankings(period), buildMeta({
+      source: "local-mock",
+      usedFallback: false,
+      reasonCode: "DB_UNAVAILABLE",
+      reasonMessage: "云函数未拿到数据库实例"
+    }));
   }
 
   try {
-    return await getRankingsFromDb(period, db);
+    const result = await getRankingsFromDb(period, db);
+    return withMeta(result, buildMeta({
+      source: "cloud-db",
+      observedAt: result.updatedAt || new Date().toISOString()
+    }));
   } catch (error) {
-    return getMockRankings(period);
+    return withMeta(getMockRankings(period), buildMeta({
+      source: "mock-fallback",
+      usedFallback: true,
+      reasonCode: error.code || "CLOUD_READ_FAILED",
+      reasonMessage: error.message || "读取云端榜单失败",
+      error
+    }));
   }
 }
 
 async function getRepoDetail(repoId, db) {
   if (!db) {
-    return getMockRepoDetail(repoId);
+    return withMeta(getMockRepoDetail(repoId), buildMeta({
+      source: "local-mock",
+      usedFallback: false,
+      reasonCode: "DB_UNAVAILABLE",
+      reasonMessage: "云函数未拿到数据库实例"
+    }));
   }
 
   try {
-    return await getRepoDetailFromDb(repoId, db);
+    const result = await getRepoDetailFromDb(repoId, db);
+    return withMeta(result, buildMeta({
+      source: "cloud-db",
+      observedAt: result.updatedAt || result.lastSyncedAt || new Date().toISOString()
+    }));
   } catch (error) {
-    return getMockRepoDetail(repoId);
+    try {
+      return withMeta(getMockRepoDetail(repoId), buildMeta({
+        source: "mock-fallback",
+        usedFallback: true,
+        reasonCode: error.code || "CLOUD_READ_FAILED",
+        reasonMessage: error.message || "读取云端详情失败",
+        error
+      }));
+    } catch (mockError) {
+      throw createObservableError("REPO_DETAIL_UNAVAILABLE", "云端详情读取失败，且本地 mock 中也没有该项目", {
+        repoId,
+        cloudError: serializeError(error),
+        mockError: serializeError(mockError)
+      });
+    }
   }
 }
 
