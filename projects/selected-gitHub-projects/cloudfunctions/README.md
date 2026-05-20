@@ -5,7 +5,7 @@
 - `seedMockData`
   初始化演示数据，快速打通数据库读链路。
 - `syncGithubRepos`
-  直接抓取 GitHub Trending 的 `daily / weekly / monthly` 榜单，写入 `repositories`、`star_snapshots` 和 `ranking_snapshots`。
+  优先读取预生成的 Trending feed，再写入 `repositories`、`star_snapshots` 和 `ranking_snapshots`。
 - `calculateRankings`
   基于仓库信息和 star 快照计算 `daily` / `weekly` / `monthly` 榜单，写入 `ranking_snapshots`。现在主要作为备用计算链路保留。
 - `generateRepoSummaries`
@@ -32,16 +32,17 @@
 4. 在小程序前端验证榜单页和详情页已经能从数据库读取演示数据
 5. 在云函数环境变量中配置 `GITHUB_TOKEN` 或 `GH_TOKEN`
 6. 部署 `syncGithubRepos`
-7. 先用 `{"dryRun": true, "maxRepos": 3}` 调用一次 `syncGithubRepos`
-8. 再用 `{"dryRun": false, "maxRepos": 10}` 调用一次 `syncGithubRepos`
-9. 如果你还想保留“自计算榜单”的备用链路，再单独部署并调用 `calculateRankings`
-10. 在云函数环境变量中配置摘要链：
+7. 配置 `TRENDING_FEED_URL`
+8. 先用 `{"dryRun": true, "maxRepos": 3}` 调用一次 `syncGithubRepos`
+9. 再用 `{"dryRun": false, "maxRepos": 10}` 调用一次 `syncGithubRepos`
+10. 如果你还想保留“自计算榜单”的备用链路，再单独部署并调用 `calculateRankings`
+11. 在云函数环境变量中配置摘要链：
     `REPO_SUMMARY_API_KEY`
     `REPO_SUMMARY_MODEL`
     `REPO_SUMMARY_BASE_URL`
-11. 部署 `generateRepoSummaries`
-12. 先用小批量参数手动调用一次 `generateRepoSummaries`
-13. 回到小程序前端验证榜单页和详情页是否开始显示真实同步数据和中文摘要
+12. 部署 `generateRepoSummaries`
+13. 先用小批量参数手动调用一次 `generateRepoSummaries`
+14. 回到小程序前端验证榜单页和详情页是否开始显示真实同步数据和中文摘要
 
 ## Summary Env
 
@@ -58,11 +59,28 @@
 
 如果你已经在环境里配置了 `OPENAI_API_KEY`、`OPENAI_MODEL` 或 `OPENAI_BASE_URL`，摘要函数也会自动复用它们。
 
+## Trending Feed
+
+`syncGithubRepos` 现在支持优先从一个静态 JSON feed 读取榜单，而不是在微信云函数里直接抓 `github.com/trending`。
+
+- `TRENDING_FEED_URL`
+  推荐配置为：
+  `https://cdn.jsdelivr.net/gh/Neumatic1/wechat-miniprogram-codex@main/projects/selected-gitHub-projects/data/trending-feed.json`
+
+仓库里已经提供：
+
+- feed 生成脚本：
+  `projects/selected-gitHub-projects/scripts/build-trending-feed.js`
+- feed 文件：
+  `projects/selected-gitHub-projects/data/trending-feed.json`
+- GitHub Actions 工作流：
+  `.github/workflows/update-trending-feed.yml`
+
 ## Notes
 
 - 微信开发者工具部署云函数时，按单个函数目录上传；不要依赖父目录共享代码自动被打包。
 - `syncGithubRepos` 支持通过事件参数覆盖抓取配置：`periods`、`maxRepos`、`dryRun`。
-- `syncGithubRepos` 现在会直接抓 GitHub Trending 页面，并为这些仓库补一次 GitHub API 详情，所以第一次联调建议把云函数超时时间调到 `15s` 或更高。
+- 微信云函数环境如果直接访问 `github.com/trending` 很容易超时，生产上建议始终走 feed URL。
 - `getRankings` / `getRepoDetail` 现在在数据库读取失败时不会再静默回退。前端会拿到 `meta` 字段并显示“当前展示的是 Mock 回退数据”。
 - `generateRepoSummaries` 会优先处理当前 `daily / weekly / monthly` 榜单里的仓库，再补其它仓库。
 - 大模型摘要链会把来源写回仓库字段：

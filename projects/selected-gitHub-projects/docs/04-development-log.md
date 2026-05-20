@@ -74,9 +74,21 @@
 - 同步时会把三个周期的榜单直接写入 `ranking_snapshots`
 - 同步时仍会回写 `repositories` 与 `star_snapshots`，保证详情页和后续摘要链继续可用
 
+### 5. 榜单同步补充 feed 代理方案
+
+- `scripts/build-trending-feed.js`
+- `data/trending-feed.json`
+- `.github/workflows/update-trending-feed.yml`
+
+改动说明：
+
+- 确认微信云函数环境直接抓 `github.com/trending` 会稳定超时
+- 改为由 GitHub Actions 定时生成 `trending-feed.json`
+- `syncGithubRepos` 优先读取 `TRENDING_FEED_URL`，只在显式允许时才回退到直接抓 Trending 页面
+
 ## 当前风险与待办
 
 - `generateRepoSummaries` 需要在微信云开发控制台配置摘要模型环境变量后，才能走真正的模型链路
 - 目前尚未在真实云环境完成 `getRankings/getRepoDetail` 的异常回退联调，需要在开发者工具中验证前端提示条是否符合预期
 - 如果后续要进一步提升摘要质量，可以考虑补充 README 抓取、主页链接、最近 release 等更丰富的输入上下文
-- `syncGithubRepos` 切到 Trending 直连后，需要重新部署该云函数并重新跑一次，才能让周榜/月榜和日榜真正区分开
+- `syncGithubRepos` 切到 feed 代理后，需要先让 GitHub Actions 产出最新 feed，并在云函数环境变量中配置 `TRENDING_FEED_URL`

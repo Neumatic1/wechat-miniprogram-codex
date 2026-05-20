@@ -1,4 +1,5 @@
 const https = require("https");
+const { URL } = require("url");
 
 function request(pathname, token, options = {}) {
   const requestOptions = {
@@ -46,6 +47,21 @@ function request(pathname, token, options = {}) {
     });
     requestInstance.end();
   });
+}
+
+function requestAbsoluteUrl(urlString, options = {}) {
+  const parsedUrl = new URL(urlString);
+
+  return request(
+    `${parsedUrl.pathname}${parsedUrl.search || ""}`,
+    "",
+    {
+      hostname: parsedUrl.hostname,
+      accept: options.accept,
+      headers: options.headers,
+      timeoutMs: options.timeoutMs
+    }
+  );
 }
 
 async function requestJson(pathname, token, options) {
@@ -152,7 +168,21 @@ async function getRepositoryByFullName({ token, fullName }) {
   return requestJson(`/repos/${encodedFullName}`, token, { timeoutMs: 10000 });
 }
 
+async function fetchTrendingFeed({ feedUrl }) {
+  const body = await requestAbsoluteUrl(feedUrl, {
+    accept: "application/json",
+    timeoutMs: 10000
+  });
+
+  try {
+    return JSON.parse(body);
+  } catch (error) {
+    throw new Error(`Failed to parse trending feed JSON: ${error.message}`);
+  }
+}
+
 module.exports = {
+  fetchTrendingFeed,
   fetchTrendingRepositories,
   getRepositoryByFullName
 };

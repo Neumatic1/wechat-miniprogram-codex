@@ -1,4 +1,8 @@
-const { fetchTrendingRepositories, getRepositoryByFullName } = require("./github-client");
+const {
+  fetchTrendingFeed,
+  fetchTrendingRepositories,
+  getRepositoryByFullName
+} = require("./github-client");
 
 const COLLECTIONS = {
   repositories: "repositories",
@@ -8,6 +12,8 @@ const COLLECTIONS = {
 
 const DEFAULT_PERIODS = ["daily", "weekly", "monthly"];
 const PERIOD_FETCH_BUDGET_MS = 12000;
+const DEFAULT_FEED_URL =
+  "https://cdn.jsdelivr.net/gh/Neumatic1/wechat-miniprogram-codex@main/projects/selected-gitHub-projects/data/trending-feed.json";
 
 function getGithubToken() {
   return process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "";
@@ -116,6 +122,14 @@ function shouldHydrateDetails(options) {
   return parseBoolean(options.hydrateDetails, false);
 }
 
+function getFeedUrl(options) {
+  return (
+    options.feedUrl ||
+    process.env.TRENDING_FEED_URL ||
+    DEFAULT_FEED_URL
+  );
+}
+
 async function writeRepositories(db, repositories, capturedAt) {
   const writes = repositories.map(async (repository) => {
     const nextRecord = Object.assign({}, repository, {
@@ -176,6 +190,80 @@ function serializePeriodError(error) {
   };
 }
 
+function normalizeRepositoryFromFeed(item, capturedAt) {
+  const fullName = item.fullName || "";
+  const owner = item.owner || fullName.split("/")[0] || "";
+  const name = item.name || fullName.split("/")[1] || "";
+
+  return {
+    repoId: buildRepoId(fullName),
+    fullName,
+    owner,
+    name,
+    description: item.description || "",
+    language: item.language || "",
+    topics: Array.isArray(item.topics) ? item.topics : [],
+    stars: Number(item.stars) || 0,
+    forks: Number(item.forks) || 0,
+    openIssues: Number(item.openIssues) || 0,
+    githubUrl: item.githubUrl || (fullName ? `https://github.com/${fullName}` : ""),
+    pushedAt: item.pushedAt || "",
+    createdAt: item.createdAt || "",
+    updatedAt: capturedAt,
+    lastSyncedAt: capturedAt,
+    source: "syncGithubTrendingFeed"
+  };
+}
+
+function buildPayloadFromFeed(feed, options = {}) {
+  const periods = normalizePeriods(options.periods);
+  const maxRepos = Math.min(Math.max(Number(options.maxRepos) || 10, 1), 25);
+  const capturedAt = feed.capturedAt || options.capturedAt || new Date().toISOString();
+  const trendingByPeriod = {};
+  const repositoryMap = {};
+  const successfulPeriods = [];
+  const periodErrors = {};
+
+  periods.forEach((period) => {
+    const sourceItems = feed && feed.periods && Array.isArray(feed.periods[period])
+      ? feed.periods[period]
+      : null;
+
+    if (!sourceItems || !sourceItems.length) {
+      periodErrors[period] = {
+        message: `Trending feed does not contain period: ${period}`
+      };
+      return;
+    }
+
+    successfulPeriods.push(period);
+    trendingByPeriod[period] = sourceItems.slice(0, maxRepos).map((item, index) => {
+      const repository = normalizeRepositoryFromFeed(item, capturedAt);
+      repositoryMap[repository.repoId] = repository;
+
+      return Object.assign({}, repository, {
+        rank: Number(item.rank) || index + 1,
+        rankType: period,
+        starGrowth: Number(item.starGrowth) || 0
+      });
+    });
+  });
+
+  if (!successfulPeriods.length) {
+    throw new Error(`Trending feed is missing all requested periods: ${periods.join(", ")}`);
+  }
+
+  return {
+    capturedAt,
+    hydrateDetails: false,
+    periods,
+    successfulPeriods,
+    periodErrors,
+    repositories: Object.keys(repositoryMap).map((key) => repositoryMap[key]),
+    trendingByPeriod
+  };
+}
+
 function withDeadline(taskPromise, timeoutMs, label) {
   return Promise.race([
     taskPromise,
@@ -188,6 +276,19 @@ function withDeadline(taskPromise, timeoutMs, label) {
 }
 
 async function fetchTrendingPayload(options = {}) {
+  if (parseBoolean(options.preferFeed, true)) {
+    try {
+      const feed = await fetchTrendingFeed({
+        feedUrl: getFeedUrl(options)
+      });
+      return buildPayloadFromFeed(feed, options);
+    } catch (error) {
+      if (!parseBoolean(options.allowFeedFallbackToScrape, false)) {
+        throw error;
+      }
+    }
+  }
+
   const periods = normalizePeriods(options.periods);
   const maxRepos = Math.min(Math.max(Number(options.maxRepos) || 10, 1), 25);
   const capturedAt = options.capturedAt || new Date().toISOString();
