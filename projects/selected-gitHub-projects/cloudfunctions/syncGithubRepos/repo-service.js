@@ -1,5 +1,6 @@
 const {
   fetchTrendingFeed,
+  fetchTrendingFeedFromGithubRepo,
   fetchTrendingRepositories,
   getRepositoryByFullName
 } = require("./github-client");
@@ -12,6 +13,10 @@ const COLLECTIONS = {
 
 const DEFAULT_PERIODS = ["daily", "weekly", "monthly"];
 const PERIOD_FETCH_BUDGET_MS = 12000;
+const DEFAULT_FEED_REPO_OWNER = "Neumatic1";
+const DEFAULT_FEED_REPO_NAME = "wechat-miniprogram-codex";
+const DEFAULT_FEED_REPO_PATH = "projects/selected-gitHub-projects/data/trending-feed.json";
+const DEFAULT_FEED_REPO_REF = "main";
 const DEFAULT_FEED_URL =
   "https://cdn.jsdelivr.net/gh/Neumatic1/wechat-miniprogram-codex@main/projects/selected-gitHub-projects/data/trending-feed.json";
 
@@ -128,6 +133,27 @@ function getFeedUrl(options) {
     process.env.TRENDING_FEED_URL ||
     DEFAULT_FEED_URL
   );
+}
+
+function getFeedRepoConfig(options) {
+  return {
+    owner:
+      options.feedRepoOwner ||
+      process.env.TRENDING_FEED_REPO_OWNER ||
+      DEFAULT_FEED_REPO_OWNER,
+    repo:
+      options.feedRepoName ||
+      process.env.TRENDING_FEED_REPO_NAME ||
+      DEFAULT_FEED_REPO_NAME,
+    path:
+      options.feedRepoPath ||
+      process.env.TRENDING_FEED_REPO_PATH ||
+      DEFAULT_FEED_REPO_PATH,
+    ref:
+      options.feedRepoRef ||
+      process.env.TRENDING_FEED_REPO_REF ||
+      DEFAULT_FEED_REPO_REF
+  };
 }
 
 async function writeRepositories(db, repositories, capturedAt) {
@@ -278,13 +304,27 @@ function withDeadline(taskPromise, timeoutMs, label) {
 async function fetchTrendingPayload(options = {}) {
   if (parseBoolean(options.preferFeed, true)) {
     try {
-      const feed = await fetchTrendingFeed({
-        feedUrl: getFeedUrl(options)
-      });
+      const feed = await fetchTrendingFeedFromGithubRepo(
+        Object.assign(
+          {
+            token: options.token || getGithubToken()
+          },
+          getFeedRepoConfig(options)
+        )
+      );
       return buildPayloadFromFeed(feed, options);
     } catch (error) {
-      if (!parseBoolean(options.allowFeedFallbackToScrape, false)) {
-        throw error;
+      try {
+        const feed = await fetchTrendingFeed({
+          feedUrl: getFeedUrl(options)
+        });
+        return buildPayloadFromFeed(feed, options);
+      } catch (urlError) {
+        if (!parseBoolean(options.allowFeedFallbackToScrape, false)) {
+          throw new Error(
+            `Failed to load trending feed from GitHub API and URL. api=${error.message}; url=${urlError.message}`
+          );
+        }
       }
     }
   }

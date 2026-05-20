@@ -181,8 +181,34 @@ async function fetchTrendingFeed({ feedUrl }) {
   }
 }
 
+async function fetchTrendingFeedFromGithubRepo({ token, owner, repo, path, ref }) {
+  const encodedPath = String(path || "")
+    .split("/")
+    .map((item) => encodeURIComponent(item))
+    .join("/");
+  const encodedRef = encodeURIComponent(ref || "main");
+  const response = await requestJson(
+    `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodedPath}?ref=${encodedRef}`,
+    token,
+    { timeoutMs: 10000 }
+  );
+
+  if (!response || response.type !== "file" || !response.content) {
+    throw new Error("Trending feed file response is missing content");
+  }
+
+  const raw = Buffer.from(String(response.content).replace(/\n/g, ""), "base64").toString("utf8");
+
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`Failed to parse GitHub repo feed JSON: ${error.message}`);
+  }
+}
+
 module.exports = {
   fetchTrendingFeed,
+  fetchTrendingFeedFromGithubRepo,
   fetchTrendingRepositories,
   getRepositoryByFullName
 };
