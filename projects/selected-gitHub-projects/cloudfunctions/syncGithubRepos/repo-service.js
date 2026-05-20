@@ -89,6 +89,32 @@ function normalizePeriods(periods) {
     .filter((item, index, array) => array.indexOf(item) === index);
 }
 
+function parseBoolean(value, defaultValue) {
+  if (value === undefined || value === null || value === "") {
+    return defaultValue;
+  }
+
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  const normalized = String(value).trim().toLowerCase();
+
+  if (["1", "true", "yes", "on"].includes(normalized)) {
+    return true;
+  }
+
+  if (["0", "false", "no", "off"].includes(normalized)) {
+    return false;
+  }
+
+  return defaultValue;
+}
+
+function shouldHydrateDetails(options) {
+  return parseBoolean(options.hydrateDetails, false);
+}
+
 async function writeRepositories(db, repositories, capturedAt) {
   const writes = repositories.map(async (repository) => {
     const nextRecord = Object.assign({}, repository, {
@@ -148,6 +174,7 @@ async function fetchTrendingPayload(options = {}) {
   const maxRepos = Math.min(Math.max(Number(options.maxRepos) || 10, 1), 25);
   const capturedAt = options.capturedAt || new Date().toISOString();
   const token = options.token || getGithubToken();
+  const hydrateDetails = shouldHydrateDetails(options);
 
   const trendingGroups = await Promise.all(
     periods.map(async (period) => ({
@@ -174,19 +201,21 @@ async function fetchTrendingPayload(options = {}) {
   });
 
   const uniqueTrendingRepos = Array.from(uniqueTrendingMap.values());
-  const detailedRepositories = await Promise.all(
-    uniqueTrendingRepos.map(async (item) => {
-      try {
-        const apiRepo = await getRepositoryByFullName({
-          token,
-          fullName: item.fullName
-        });
-        return normalizeRepository(apiRepo, item, capturedAt);
-      } catch (error) {
-        return normalizeRepository(null, item, capturedAt);
-      }
-    })
-  );
+  const detailedRepositories = hydrateDetails
+    ? await Promise.all(
+        uniqueTrendingRepos.map(async (item) => {
+          try {
+            const apiRepo = await getRepositoryByFullName({
+              token,
+              fullName: item.fullName
+            });
+            return normalizeRepository(apiRepo, item, capturedAt);
+          } catch (error) {
+            return normalizeRepository(null, item, capturedAt);
+          }
+        })
+      )
+    : uniqueTrendingRepos.map((item) => normalizeRepository(null, item, capturedAt));
   const repositoryById = detailedRepositories.reduce((accumulator, repo) => {
     accumulator[repo.repoId] = repo;
     return accumulator;
@@ -212,6 +241,7 @@ async function fetchTrendingPayload(options = {}) {
 
   return {
     capturedAt,
+    hydrateDetails,
     periods,
     repositories: detailedRepositories,
     trendingByPeriod
@@ -226,6 +256,7 @@ async function syncGithubRepos(db, options = {}) {
       dryRun: true,
       capturedAt: payload.capturedAt,
       periods: payload.periods,
+      hydrateDetails: payload.hydrateDetails,
       repositoryCount: payload.repositories.length,
       rankingPeriods: payload.periods.map((period) => ({
         period,
@@ -254,6 +285,7 @@ async function syncGithubRepos(db, options = {}) {
     dryRun: false,
     capturedAt: payload.capturedAt,
     periods: payload.periods,
+    hydrateDetails: payload.hydrateDetails,
     repositoryCount: payload.repositories.length,
     snapshotCount: payload.repositories.length,
     rankingPeriods: payload.periods.map((period) => ({

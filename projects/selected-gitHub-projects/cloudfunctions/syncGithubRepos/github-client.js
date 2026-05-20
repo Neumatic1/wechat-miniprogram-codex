@@ -41,12 +41,15 @@ function request(pathname, token, options = {}) {
     });
 
     requestInstance.on("error", reject);
+    requestInstance.setTimeout(options.timeoutMs || 10000, () => {
+      requestInstance.destroy(new Error(`GitHub request timed out: ${pathname}`));
+    });
     requestInstance.end();
   });
 }
 
-async function requestJson(pathname, token) {
-  const body = await request(pathname, token);
+async function requestJson(pathname, token, options) {
+  const body = await request(pathname, token, options);
 
   try {
     return JSON.parse(body);
@@ -124,7 +127,8 @@ function parseTrendingArticles(html, since, maxRepos) {
 async function fetchTrendingRepositories({ since, maxRepos }) {
   const html = await request(`/trending?since=${encodeURIComponent(since)}`, "", {
     hostname: "github.com",
-    accept: "text/html"
+    accept: "text/html",
+    timeoutMs: 10000
   });
 
   return parseTrendingArticles(html, since, maxRepos);
@@ -135,7 +139,7 @@ async function getRepositoryByFullName({ token, fullName }) {
     .split("/")
     .map((item) => encodeURIComponent(item))
     .join("/");
-  return requestJson(`/repos/${encodedFullName}`, token);
+  return requestJson(`/repos/${encodedFullName}`, token, { timeoutMs: 10000 });
 }
 
 module.exports = {
