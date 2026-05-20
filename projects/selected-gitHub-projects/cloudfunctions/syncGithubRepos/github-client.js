@@ -41,7 +41,7 @@ function request(pathname, token, options = {}) {
     });
 
     requestInstance.on("error", reject);
-    requestInstance.setTimeout(options.timeoutMs || 10000, () => {
+    requestInstance.setTimeout(options.timeoutMs || 15000, () => {
       requestInstance.destroy(new Error(`GitHub request timed out: ${pathname}`));
     });
     requestInstance.end();
@@ -125,13 +125,23 @@ function parseTrendingArticles(html, since, maxRepos) {
 }
 
 async function fetchTrendingRepositories({ since, maxRepos }) {
-  const html = await request(`/trending?since=${encodeURIComponent(since)}`, "", {
-    hostname: "github.com",
-    accept: "text/html",
-    timeoutMs: 10000
-  });
+  let lastError = null;
 
-  return parseTrendingArticles(html, since, maxRepos);
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const html = await request(`/trending?since=${encodeURIComponent(since)}`, "", {
+        hostname: "github.com",
+        accept: "text/html",
+        timeoutMs: 15000
+      });
+
+      return parseTrendingArticles(html, since, maxRepos);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error(`Failed to fetch trending repositories: ${since}`);
 }
 
 async function getRepositoryByFullName({ token, fullName }) {

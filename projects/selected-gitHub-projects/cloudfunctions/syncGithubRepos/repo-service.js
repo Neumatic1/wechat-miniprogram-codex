@@ -169,6 +169,12 @@ async function writeRankingSnapshots(db, trendingByPeriod, capturedAt) {
   );
 }
 
+function serializePeriodError(error) {
+  return {
+    message: error && error.message ? error.message : String(error || "Unknown error")
+  };
+}
+
 async function fetchTrendingPayload(options = {}) {
   const periods = normalizePeriods(options.periods);
   const maxRepos = Math.min(Math.max(Number(options.maxRepos) || 10, 1), 25);
@@ -176,12 +182,29 @@ async function fetchTrendingPayload(options = {}) {
   const token = options.token || getGithubToken();
   const hydrateDetails = shouldHydrateDetails(options);
 
-  const trendingGroups = await Promise.all(
+  const groupResults = await Promise.allSettled(
     periods.map(async (period) => ({
       period,
       items: await fetchTrendingRepositories({ since: period, maxRepos })
     }))
   );
+  const trendingGroups = [];
+  const periodErrors = {};
+
+  groupResults.forEach((result, index) => {
+    const period = periods[index];
+
+    if (result.status === "fulfilled") {
+      trendingGroups.push(result.value);
+      return;
+    }
+
+    periodErrors[period] = serializePeriodError(result.reason);
+  });
+
+  if (!trendingGroups.length) {
+    throw new Error(`All trending periods failed: ${JSON.stringify(periodErrors)}`);
+  }
 
   const uniqueTrendingMap = new Map();
 
@@ -243,6 +266,8 @@ async function fetchTrendingPayload(options = {}) {
     capturedAt,
     hydrateDetails,
     periods,
+    successfulPeriods: trendingGroups.map((item) => item.period),
+    periodErrors,
     repositories: detailedRepositories,
     trendingByPeriod
   };
@@ -256,6 +281,8 @@ async function syncGithubRepos(db, options = {}) {
       dryRun: true,
       capturedAt: payload.capturedAt,
       periods: payload.periods,
+      successfulPeriods: payload.successfulPeriods,
+      periodErrors: payload.periodErrors,
       hydrateDetails: payload.hydrateDetails,
       repositoryCount: payload.repositories.length,
       rankingPeriods: payload.periods.map((period) => ({
@@ -285,6 +312,8 @@ async function syncGithubRepos(db, options = {}) {
     dryRun: false,
     capturedAt: payload.capturedAt,
     periods: payload.periods,
+    successfulPeriods: payload.successfulPeriods,
+    periodErrors: payload.periodErrors,
     hydrateDetails: payload.hydrateDetails,
     repositoryCount: payload.repositories.length,
     snapshotCount: payload.repositories.length,
