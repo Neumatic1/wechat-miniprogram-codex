@@ -1,0 +1,27 @@
+<view class="page-shell favorites-page">
+  <view class="hero glass-card">
+    <text class="page-title">我的收藏</text>
+    <text class="page-subtitle">本地保存，换设备后不会自动同步</text>
+  </view>
+
+  <status-view
+    wx:if="{{!favorites.length}}"
+    title="还没有收藏项目"
+    description="先去榜单里收藏你感兴趣的项目，之后就能在这里快速回看。"
+    actionText="去看榜单"
+    bindactiontap="goRankings"
+  />
+
+  <view wx:else class="repo-list">
+    <repo-card
+      wx:for="{{favorites}}"
+      wx:key="repoId"
+      repo="{{item}}"
+      isFavorite="{{true}}"
+      showCopyButton="{{true}}"
+      bindcardtap="handleCardTap"
+      bindfavoritetap="handleFavoriteTap"
+      bindcopytap="handleCopyTap"
+    />
+  </view>
+</view>

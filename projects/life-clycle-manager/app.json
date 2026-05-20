@@ -1,0 +1,41 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/me/index",
+    "pages/feedback/index",
+    "pages/guide/index",
+    "pages/template-manage/index",
+    "pages/item-detail/index",
+    "pages/item-create/index",
+    "pages/tips/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "生活物品周期管家",
+    "navigationBarBackgroundColor": "#F6F1E8",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F6F1E8",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#8E8E93",
+    "selectedColor": "#7FA16A",
+    "backgroundColor": "#FFFDF8",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "首页",
+        "iconPath": "images/tab/home.png",
+        "selectedIconPath": "images/tab/home-active.png"
+      },
+      {
+        "pagePath": "pages/me/index",
+        "text": "我的",
+        "iconPath": "images/tab/me.png",
+        "selectedIconPath": "images/tab/me-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

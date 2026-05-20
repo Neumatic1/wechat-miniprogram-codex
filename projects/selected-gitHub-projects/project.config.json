@@ -1,0 +1,46 @@
+{
+  "description": "GitHub 项目精选微信小程序",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "miniprogramRoot": "",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "compileType": "miniprogram",
+  "appid": "wx8b4129374dc126b5",
+  "projectname": "github-project-curation",
+  "libVersion": "3.16.0",
+  "simulatorType": "wechat",
+  "simulatorPluginLibVersion": {},
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "compileHotReLoad": true,
+    "bundle": false,
+    "userConfirmedBundleSwitch": false,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "condition": {},
+  "editorSetting": {},
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
+}

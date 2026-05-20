@@ -1,0 +1,82 @@
+<view wx:if="{{item}}" class="page-shell detail-page">
+  <view class="card detail-hero">
+    <view class="detail-head">
+      <view
+        class="detail-thumb"
+        style="background: {{item.categoryColor}}; color: {{item.categoryTextColor}};"
+      >
+        <image wx:if="{{item.imageUrl}}" class="detail-thumb-image" src="{{item.imageUrl}}" mode="aspectFill"></image>
+        <text wx:else>{{item.displayInitial}}</text>
+      </view>
+      <view class="detail-copy">
+        <text class="detail-name">{{item.name}}</text>
+        <text class="detail-template">{{item.templateName}} · {{item.categoryLabel}}</text>
+        <text class="status-badge status-{{item.statusType}}">{{item.statusText}}</text>
+      </view>
+    </view>
+
+    <view class="detail-grid">
+      <view class="detail-metric">
+        <view class="detail-metric-inner">
+          <text class="metric-label">{{item.startLabel}}</text>
+          <text class="metric-value">{{item.startAt}}</text>
+        </view>
+      </view>
+      <view class="detail-metric">
+        <view class="detail-metric-inner">
+          <text class="metric-label">建议周期</text>
+          <text class="metric-value">{{item.cycleDays}} 天</text>
+        </view>
+      </view>
+      <view class="detail-metric">
+        <view class="detail-metric-inner">
+          <text class="metric-label">到期时间</text>
+          <text class="metric-value">{{item.expireAt}}</text>
+        </view>
+      </view>
+      <view class="detail-metric">
+        <view class="detail-metric-inner">
+          <text class="metric-label">剩余进度</text>
+          <text class="metric-value">{{item.remainingPercent}}%</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="detail-progress">
+      <view class="progress-track">
+        <view
+          class="progress-fill"
+          style="width: {{item.remainingPercent}}%; background: {{item.progressColor}};"
+        ></view>
+      </view>
+      <view class="progress-meta">
+        <text class="progress-days">{{item.statusText}}</text>
+        <text class="progress-percent">{{item.descriptionText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="card detail-actions">
+    <text class="section-title">下一步建议</text>
+    <view class="action-row">
+      <view class="button-primary" bindtap="handleComplete">已{{item.actionLabel}}</view>
+      <view class="button-secondary" bindtap="handleEdit">编辑</view>
+      <view class="button-secondary danger-button" bindtap="handleDelete">删除</view>
+      <view class="button-secondary" bindtap="handleBackHome">返回首页</view>
+    </view>
+  </view>
+
+  <view class="card timeline-card">
+    <text class="section-title">生命周期时间线</text>
+    <view class="timeline-list">
+      <view wx:for="{{item.timeline}}" wx:key="index" class="timeline-item">
+        <view class="timeline-dot"></view>
+        <view class="timeline-content">
+          <text class="timeline-date">{{item.date}}</text>
+          <text class="timeline-title">{{item.title}}</text>
+          <text class="timeline-detail">{{item.detail}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

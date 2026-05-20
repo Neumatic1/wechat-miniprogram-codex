@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GitHub 项目精选小程序高保真原型</title>
+    <style>
+      :root {
+        --canvas: #090a0c;
+        --page: #111318;
+        --panel: #171a21;
+        --panel-soft: #1d212a;
+        --text: #f5f2e8;
+        --muted: #c4bda8;
+        --subtle: #8f8876;
+        --border: #3b3424;
+        --border-muted: #2b2f38;
+        --accent: #d9a441;
+        --accent-strong: #f2cc73;
+        --accent-bg: #2c2414;
+        --success: #f0c967;
+        --success-bg: #302715;
+        --danger: #ff8178;
+        --neutral: #5b6472;
+        --shadow: 0 18px 48px rgba(0, 0, 0, 0.46);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at top left, rgba(217, 164, 65, 0.18), transparent 34%),
+          linear-gradient(180deg, #101217, #07080a 70%);
+        color: var(--text);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Microsoft YaHei", sans-serif;
+      }
+
+      .prototype-board {
+        width: 1320px;
+        min-height: 100vh;
+        margin: 0 auto;
+        padding: 40px 36px 56px;
+      }
+
+      .board-title {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 24px;
+      }
+
+      .board-title h1 {
+        margin: 0;
+        font-size: 28px;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      .board-title p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .brand-note {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 8px;
+        padding: 10px 12px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .screens {
+        display: grid;
+        grid-template-columns: repeat(3, 390px);
+        gap: 36px;
+        align-items: start;
+      }
+
+      .phone {
+        width: 390px;
+        height: 844px;
+        background: var(--page);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .status-bar {
+        height: 36px;
+        padding: 11px 22px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        color: var(--text);
+        font-size: 12px;
+        font-weight: 600;
+        background: var(--page);
+      }
+
+      .status-icons {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+      }
+
+      .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 999px;
+        background: var(--text);
+        opacity: 0.7;
+      }
+
+      .battery {
+        width: 20px;
+        height: 10px;
+        border: 1.5px solid var(--text);
+        border-radius: 3px;
+        position: relative;
+      }
+
+      .battery::after {
+        content: "";
+        position: absolute;
+        width: 2px;
+        height: 5px;
+        right: -4px;
+        top: 1.5px;
+        background: var(--text);
+        border-radius: 1px;
+      }
+
+      .page {
+        height: calc(100% - 36px);
+        display: flex;
+        flex-direction: column;
+        background: var(--canvas);
+      }
+
+      .content {
+        flex: 1;
+        overflow: hidden;
+        padding: 18px 16px 0;
+      }
+
+      .page-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: flex-start;
+        margin-bottom: 16px;
+      }
+
+      .page-title {
+        margin: 0;
+        color: var(--text);
+        font-size: 24px;
+        line-height: 1.18;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      .page-subtitle {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .icon-button {
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        color: var(--muted);
+        display: grid;
+        place-items: center;
+        font-size: 17px;
+        font-weight: 700;
+      }
+
+      .segment {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 4px;
+        background: #07080a;
+        padding: 4px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+      }
+
+      .segment-item {
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 6px;
+        color: var(--muted);
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .segment-item.active {
+        background: linear-gradient(180deg, #2d2618, #211b10);
+        color: var(--accent-strong);
+        box-shadow: inset 0 0 0 1px rgba(242, 204, 115, 0.35);
+      }
+
+      .meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 2px 12px;
+        color: var(--subtle);
+        font-size: 12px;
+      }
+
+      .refresh-pill {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      .repo-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .repo-card {
+        background: var(--panel);
+        border: 1px solid var(--border-muted);
+        border-radius: 8px;
+        padding: 13px 12px 12px;
+      }
+
+      .repo-card.highlight {
+        border-color: rgba(242, 204, 115, 0.48);
+        box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.12);
+      }
+
+      .repo-top {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 9px;
+        align-items: start;
+      }
+
+      .rank {
+        min-width: 34px;
+        height: 24px;
+        padding: 0 8px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: var(--accent-bg);
+        color: var(--accent-strong);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .repo-name {
+        color: var(--accent);
+        font-size: 15px;
+        line-height: 1.35;
+        font-weight: 700;
+        word-break: break-word;
+      }
+
+      .star-button {
+        width: 30px;
+        height: 30px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel-soft);
+        color: var(--muted);
+        display: grid;
+        place-items: center;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .star-button.active {
+        background: #2f2411;
+        color: var(--accent-strong);
+        border-color: rgba(242, 204, 115, 0.72);
+      }
+
+      .repo-desc {
+        margin: 7px 0 11px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .stat-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        align-items: center;
+      }
+
+      .chip {
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid var(--border-muted);
+        border-radius: 999px;
+        padding: 0 8px;
+        background: #12151b;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .chip.success {
+        border-color: rgba(242, 204, 115, 0.35);
+        background: var(--success-bg);
+        color: var(--success);
+      }
+
+      .language-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #f1e05a;
+      }
+
+      .language-dot.ts {
+        background: #3178c6;
+      }
+
+      .language-dot.py {
+        background: #3572a5;
+      }
+
+      .language-dot.go {
+        background: #00add8;
+      }
+
+      .tabbar {
+        height: 64px;
+        background: var(--page);
+        border-top: 1px solid var(--border);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .tabbar-item {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 4px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .tabbar-item.active {
+        color: var(--accent);
+      }
+
+      .tabbar-icon {
+        font-size: 17px;
+        line-height: 1;
+      }
+
+      .detail-nav {
+        height: 44px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: -4px 0 12px;
+      }
+
+      .back-button {
+        width: 34px;
+        height: 34px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .nav-title {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .detail-hero {
+        background: var(--panel);
+        border: 1px solid var(--border-muted);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 12px;
+      }
+
+      .detail-title-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+      }
+
+      .detail-name {
+        margin: 0;
+        color: var(--accent);
+        font-size: 21px;
+        line-height: 1.28;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      .original-desc {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+
+      .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin: 12px 0;
+      }
+
+      .metric {
+        background: var(--panel);
+        border: 1px solid var(--border-muted);
+        border-radius: 8px;
+        padding: 9px 7px;
+      }
+
+      .metric-label {
+        color: var(--subtle);
+        font-size: 11px;
+        line-height: 1;
+        margin-bottom: 6px;
+      }
+
+      .metric-value {
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .metric-value.growth {
+        color: var(--success);
+      }
+
+      .section-card {
+        background: var(--panel);
+        border: 1px solid var(--border-muted);
+        border-radius: 8px;
+        padding: 14px 15px;
+        margin-bottom: 10px;
+      }
+
+      .section-title {
+        margin: 0 0 8px;
+        color: var(--text);
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .section-body {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .bullet-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 7px;
+      }
+
+      .bullet-list li {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.45;
+        display: grid;
+        grid-template-columns: 15px 1fr;
+        gap: 6px;
+      }
+
+      .bullet-list li::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        margin-top: 7px;
+        border-radius: 999px;
+        background: var(--accent-strong);
+      }
+
+      .link-card {
+        background: var(--panel);
+        border: 1px solid var(--border-muted);
+        border-radius: 8px;
+        padding: 12px;
+      }
+
+      .link-url {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+        word-break: break-all;
+        margin-bottom: 10px;
+      }
+
+      .primary-button {
+        width: 100%;
+        height: 40px;
+        border: 1px solid rgba(242, 204, 115, 0.55);
+        border-radius: 8px;
+        background: linear-gradient(180deg, #f2cc73, #c8922e);
+        color: #15120b;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .favorite-empty {
+        margin-top: 76px;
+        border: 1px dashed var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 28px 20px;
+        text-align: center;
+      }
+
+      .empty-mark {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 13px;
+        background: var(--accent-bg);
+        color: var(--accent-strong);
+        font-weight: 800;
+        font-size: 18px;
+      }
+
+      .empty-title {
+        margin: 0 0 7px;
+        font-size: 17px;
+        font-weight: 700;
+      }
+
+      .empty-copy {
+        margin: 0 0 17px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .secondary-button {
+        height: 36px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel-soft);
+        color: var(--text);
+        padding: 0 16px;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .favorite-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .source-note {
+        margin-top: 8px;
+        color: var(--subtle);
+        font-size: 11px;
+        line-height: 1.5;
+      }
+
+      body.single-mode {
+        background: var(--canvas);
+      }
+
+      body.single-mode .prototype-board {
+        width: 430px;
+        min-height: auto;
+        padding: 20px;
+      }
+
+      body.single-mode .board-title {
+        display: none;
+      }
+
+      body.single-mode .screens {
+        display: block;
+      }
+
+      body.single-mode .phone {
+        display: none;
+      }
+
+      body.single-mode .phone.active-screen {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="prototype-board">
+      <div class="board-title">
+        <div>
+          <h1>GitHub 项目精选小程序高保真原型</h1>
+          <p>黑金主题：深色画布、暗色卡片、金色强调、紧凑信息层级。</p>
+        </div>
+        <div class="brand-note">MVP：日榜 / 周榜 / 月榜、本地收藏、复制链接</div>
+      </div>
+
+      <section class="screens">
+        <article class="phone" id="screen-ranking" aria-label="榜单页">
+          <div class="status-bar">
+            <span>12:00</span>
+            <div class="status-icons">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="battery"></span>
+            </div>
+          </div>
+          <div class="page">
+            <div class="content">
+              <header class="page-header">
+                <div>
+                  <h2 class="page-title">GitHub 项目精选</h2>
+                  <p class="page-subtitle">发现近期增长最快的开源项目</p>
+                </div>
+                <button class="icon-button" aria-label="收藏">☆</button>
+              </header>
+
+              <nav class="segment" aria-label="榜单切换">
+                <div class="segment-item active">日榜</div>
+                <div class="segment-item">周榜</div>
+                <div class="segment-item">月榜</div>
+              </nav>
+
+              <div class="meta-row">
+                <span>日榜更新于 05-20 12:00</span>
+                <span class="refresh-pill">下拉刷新</span>
+              </div>
+
+              <div class="repo-list">
+                <section class="repo-card highlight">
+                  <div class="repo-top">
+                    <div class="rank">#1</div>
+                    <div class="repo-name">modelcontextprotocol / servers</div>
+                    <button class="star-button active" aria-label="已收藏">★</button>
+                  </div>
+                  <p class="repo-desc">一组可直接接入 MCP 的官方与社区服务器，帮助 AI 应用安全访问文件、数据库和开发工具。</p>
+                  <div class="stat-row">
+                    <span class="chip"><span class="language-dot ts"></span>TypeScript</span>
+                    <span class="chip">Star 68.4k</span>
+                    <span class="chip success">+1,248 stars</span>
+                  </div>
+                </section>
+
+                <section class="repo-card">
+                  <div class="repo-top">
+                    <div class="rank">#2</div>
+                    <div class="repo-name">microsoft / markitdown</div>
+                    <button class="star-button" aria-label="收藏">☆</button>
+                  </div>
+                  <p class="repo-desc">将 PDF、Office、图片等多种文件转换成 Markdown，适合知识库整理和 AI 文档处理流水线。</p>
+                  <div class="stat-row">
+                    <span class="chip"><span class="language-dot py"></span>Python</span>
+                    <span class="chip">Star 72.8k</span>
+                    <span class="chip success">+932 stars</span>
+                  </div>
+                </section>
+
+                <section class="repo-card">
+                  <div class="repo-top">
+                    <div class="rank">#3</div>
+                    <div class="repo-name">getzep / graphiti</div>
+                    <button class="star-button" aria-label="收藏">☆</button>
+                  </div>
+                  <p class="repo-desc">面向 AI Agent 的时序知识图谱框架，用于构建可持续更新的记忆和关系检索能力。</p>
+                  <div class="stat-row">
+                    <span class="chip"><span class="language-dot py"></span>Python</span>
+                    <span class="chip">Star 19.6k</span>
+                    <span class="chip success">+711 stars</span>
+                  </div>
+                </section>
+
+                <section class="repo-card">
+                  <div class="repo-top">
+                    <div class="rank">#4</div>
+                    <div class="repo-name">anchore / syft</div>
+                    <button class="star-button" aria-label="收藏">☆</button>
+                  </div>
+                  <p class="repo-desc">用于生成软件物料清单的 CLI 工具，适合容器镜像、依赖审计和供应链安全场景。</p>
+                  <div class="stat-row">
+                    <span class="chip"><span class="language-dot go"></span>Go</span>
+                    <span class="chip">Star 6.9k</span>
+                    <span class="chip success">+388 stars</span>
+                  </div>
+                </section>
+              </div>
+            </div>
+            <nav class="tabbar" aria-label="底部导航">
+              <div class="tabbar-item active">
+                <span class="tabbar-icon">#</span>
+                <span>榜单</span>
+              </div>
+              <div class="tabbar-item">
+                <span class="tabbar-icon">☆</span>
+                <span>收藏</span>
+              </div>
+            </nav>
+          </div>
+        </article>
+
+        <article class="phone" id="screen-detail" aria-label="项目详情页">
+          <div class="status-bar">
+            <span>12:00</span>
+            <div class="status-icons">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="battery"></span>
+            </div>
+          </div>
+          <div class="page">
+            <div class="content">
+              <div class="detail-nav">
+                <button class="back-button" aria-label="返回">‹</button>
+                <span class="nav-title">项目详情</span>
+              </div>
+
+              <section class="detail-hero">
+                <div class="detail-title-row">
+                  <div>
+                    <h2 class="detail-name">modelcontextprotocol / servers</h2>
+                    <p class="original-desc">Model Context Protocol servers for popular APIs and services.</p>
+                  </div>
+                  <button class="star-button active" aria-label="已收藏">★</button>
+                </div>
+              </section>
+
+              <div class="metric-grid">
+                <div class="metric">
+                  <div class="metric-label">Stars</div>
+                  <div class="metric-value">68.4k</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">Forks</div>
+                  <div class="metric-value">7.1k</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">增长</div>
+                  <div class="metric-value growth">+1,248</div>
+                </div>
+                <div class="metric">
+                  <div class="metric-label">语言</div>
+                  <div class="metric-value">TS</div>
+                </div>
+              </div>
+
+              <section class="section-card">
+                <h3 class="section-title">一句话简介</h3>
+                <p class="section-body">这是 MCP 生态的服务器集合，让 AI 应用可以通过统一协议连接文件系统、数据库、浏览器和第三方服务。</p>
+              </section>
+
+              <section class="section-card">
+                <h3 class="section-title">这个项目做什么</h3>
+                <p class="section-body">它提供一批可复用的 MCP Server 实现，开发者可以把这些服务接入 Agent、IDE 或自动化工具中，减少重复编写集成代码的成本。</p>
+              </section>
+
+              <section class="section-card">
+                <h3 class="section-title">核心亮点</h3>
+                <ul class="bullet-list">
+                  <li>覆盖文件、数据库、浏览器、Git 等常见开发场景。</li>
+                  <li>协议统一，便于在不同 AI 应用之间复用。</li>
+                  <li>适合作为 Agent 工具调用能力的基础设施。</li>
+                </ul>
+              </section>
+
+              <section class="link-card">
+                <div class="link-url">https://github.com/modelcontextprotocol/servers</div>
+                <button class="primary-button">复制链接</button>
+              </section>
+            </div>
+          </div>
+        </article>
+
+        <article class="phone" id="screen-favorite" aria-label="收藏页">
+          <div class="status-bar">
+            <span>12:00</span>
+            <div class="status-icons">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="battery"></span>
+            </div>
+          </div>
+          <div class="page">
+            <div class="content">
+              <header class="page-header">
+                <div>
+                  <h2 class="page-title">我的收藏</h2>
+                  <p class="page-subtitle">本地保存，换设备后不会自动同步</p>
+                </div>
+              </header>
+
+              <div class="favorite-list">
+                <section class="repo-card">
+                  <div class="repo-top">
+                    <div class="repo-name">modelcontextprotocol / servers</div>
+                    <button class="star-button active" aria-label="取消收藏">★</button>
+                  </div>
+                  <p class="repo-desc">一组可直接接入 MCP 的服务器集合，适合为 AI Agent 扩展工具调用能力。</p>
+                  <div class="stat-row">
+                    <span class="chip"><span class="language-dot ts"></span>TypeScript</span>
+                    <span class="chip">Star 68.4k</span>
+                  </div>
+                </section>
+
+                <section class="repo-card">
+                  <div class="repo-top">
+                    <div class="repo-name">microsoft / markitdown</div>
+                    <button class="star-button active" aria-label="取消收藏">★</button>
+                  </div>
+                  <p class="repo-desc">把多种文档格式转换成 Markdown，适合知识整理、RAG 入库和自动化文档处理。</p>
+                  <div class="stat-row">
+                    <span class="chip"><span class="language-dot py"></span>Python</span>
+                    <span class="chip">Star 72.8k</span>
+                  </div>
+                </section>
+              </div>
+
+              <section class="favorite-empty">
+                <div class="empty-mark">☆</div>
+                <h3 class="empty-title">空状态样式</h3>
+                <p class="empty-copy">当还没有收藏项目时，提示用户回到榜单页保存感兴趣的项目。</p>
+                <button class="secondary-button">去看榜单</button>
+              </section>
+
+              <p class="source-note">说明：首版收藏仅保存在本地缓存，不依赖登录，也不会跨设备同步。</p>
+            </div>
+            <nav class="tabbar" aria-label="底部导航">
+              <div class="tabbar-item">
+                <span class="tabbar-icon">#</span>
+                <span>榜单</span>
+              </div>
+              <div class="tabbar-item active">
+                <span class="tabbar-icon">☆</span>
+                <span>收藏</span>
+              </div>
+            </nav>
+          </div>
+        </article>
+      </section>
+    </main>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const hashScreen = window.location.hash.replace("#screen=", "");
+      const screen = params.get("screen") || hashScreen;
+      if (screen) {
+        document.body.classList.add("single-mode");
+        const target = document.getElementById(`screen-${screen}`);
+        if (target) target.classList.add("active-screen");
+      }
+    </script>
+  </body>
+</html>

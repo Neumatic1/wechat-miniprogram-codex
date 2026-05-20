@@ -1,0 +1,190 @@
+.me-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.profile-card,
+.sync-status-card,
+.menu-card,
+.tip-card {
+  padding: 30rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.profile-top {
+  display: flex;
+  gap: 22rpx;
+  align-items: flex-start;
+}
+
+.profile-avatar {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 28rpx;
+  background: #e7eee1;
+  color: #54704b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.profile-avatar-image {
+  width: 100%;
+  height: 100%;
+}
+
+.profile-avatar-text {
+  font-size: 38rpx;
+  font-weight: 700;
+}
+
+.profile-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.profile-name {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #2e3b30;
+}
+
+.profile-desc {
+  font-size: 24rpx;
+  color: #647163;
+}
+
+.profile-detail,
+.tip-text {
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #7a8579;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+}
+
+.profile-button {
+  width: 100%;
+}
+
+.secondary-pill {
+  padding: 14rpx 24rpx;
+  border-radius: 999rpx;
+  background: #efe8db;
+  color: #5f6d60;
+  font-size: 24rpx;
+}
+
+.danger-pill {
+  background: #f8e1db;
+  color: #b85c4b;
+}
+
+.stats-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.sync-status-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+.sync-status-label {
+  font-size: 24rpx;
+  color: #7a8579;
+}
+
+.sync-status-value {
+  flex: 1;
+  text-align: right;
+  font-size: 25rpx;
+  font-weight: 600;
+  color: #324032;
+}
+
+.sync-status-ok {
+  color: #5f8a52;
+}
+
+.sync-status-warning {
+  color: #c1763f;
+}
+
+.sync-status-detail {
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: #8a9288;
+}
+
+.stat-card {
+  flex: 1;
+  padding: 28rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.stat-value {
+  font-size: 42rpx;
+  font-weight: 700;
+  color: #2e3c30;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  color: #768176;
+}
+
+.menu-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.menu-copy {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.menu-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #2f3d31;
+}
+
+.menu-desc {
+  font-size: 23rpx;
+  line-height: 1.6;
+  color: #7a8579;
+}
+
+.menu-arrow {
+  font-size: 36rpx;
+  color: #99a19a;
+}
+
+.menu-divider {
+  height: 1rpx;
+  background: rgba(110, 122, 111, 0.12);
+}
+
+.danger-row .menu-desc,
+.danger-text {
+  color: #b85c4b;
+}

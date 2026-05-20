@@ -1,0 +1,191 @@
+{
+  "main": {
+    "id": "55d68ea8455d85e4",
+    "type": "split",
+    "children": [
+      {
+        "id": "67cc2ecae325b0db",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "03972592a2a20836",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "上线合规检查清单.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "上线合规检查清单"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "25be8971d68c7fcc",
+    "type": "split",
+    "children": [
+      {
+        "id": "ab4d0c2363d3ba17",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "849cbd260f86be1e",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "b6bfa6bf55d758b3",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "33ad3f2db782a7d8",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "74fcca4c53bd0367",
+    "type": "split",
+    "children": [
+      {
+        "id": "33c5b7bfb5827e6f",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "67d0dd2e52b38249",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "上线合规检查清单.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "上线合规检查清单 的反向链接列表"
+            }
+          },
+          {
+            "id": "9d81ecd853cf47b6",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "上线合规检查清单.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "上线合规检查清单 的出链列表"
+            }
+          },
+          {
+            "id": "a6ed177860c794fe",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "d70991353c8b9fda",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "998264a04611ca86",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "上线合规检查清单.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "上线合规检查清单 的大纲"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "bases:新建数据库": false
+    }
+  },
+  "active": "03972592a2a20836",
+  "lastOpenFiles": [
+    "提审前回归清单.md",
+    "上线合规检查清单.md"
+  ]
+}

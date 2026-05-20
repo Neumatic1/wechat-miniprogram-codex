@@ -1,0 +1,25 @@
+<view wx:if="{{repo}}" class="repo-card glass-card" bindtap="handleTap">
+  <view class="repo-card__head">
+    <view class="repo-card__title-group">
+      <text wx:if="{{showRank}}" class="repo-card__rank">#{{repo.rank}}</text>
+      <text class="repo-card__name">{{repo.fullName}}</text>
+    </view>
+    <view class="repo-card__favorite" catchtap="handleFavoriteTap">
+      <text>{{isFavorite ? '已收藏' : '收藏'}}</text>
+    </view>
+  </view>
+
+  <text class="repo-card__summary">{{repo.summaryZh || repo.description || '中文介绍生成中'}}</text>
+
+  <view class="repo-card__meta">
+    <text class="repo-card__meta-item">{{repo.languageLabel}}</text>
+    <text class="repo-card__meta-item">★ {{repo.displayStars}}</text>
+    <text wx:if="{{showGrowth}}" class="repo-card__meta-item repo-card__meta-item--accent">{{repo.displayGrowth}}</text>
+  </view>
+
+  <view wx:if="{{showCopyButton}}" class="repo-card__footer">
+    <view class="repo-card__copy" catchtap="handleCopyTap">
+      <text>复制链接</text>
+    </view>
+  </view>
+</view>

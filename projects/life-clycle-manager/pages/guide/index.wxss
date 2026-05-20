@@ -1,0 +1,32 @@
+.guide-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.guide-intro,
+.guide-card {
+  padding: 30rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.guide-title {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #2e3b30;
+}
+
+.guide-desc,
+.guide-section-body {
+  font-size: 25rpx;
+  line-height: 1.75;
+  color: #768176;
+}
+
+.guide-section-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #324032;
+}

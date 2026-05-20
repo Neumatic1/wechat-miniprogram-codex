@@ -1,0 +1,104 @@
+<view class="page-shell home-page">
+  <view class="card hero-card">
+    <image class="hero-background" src="/images/hero-home.jpg" mode="aspectFill"></image>
+    <view class="hero-mask"></view>
+    <view class="hero-content">
+      <view class="hero-copy">
+        <text class="hero-title">{{hero.title}}</text>
+        <text class="hero-subtitle">{{hero.subtitle}}</text>
+        <text class="hero-meta">已管理 {{managedCount}} 件物品</text>
+      </view>
+      <view class="hero-actions">
+        <view class="button-primary hero-action" bindtap="handleAddItem">添加物品</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="filter-section">
+    <view class="chip-row">
+      <view
+        wx:for="{{statusTabs}}"
+        wx:key="value"
+        class="chip status-chip {{item.isActive ? 'chip-active' : ''}} {{item.activeClass}}"
+        data-value="{{item.value}}"
+        bindtap="handleStatusTap"
+      >
+        {{item.label}}
+        <view wx:if="{{item.showCount}}" class="status-count {{item.countClass}}">{{item.count}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="filter-section">
+    <view class="chip-row category-row">
+      <view
+        wx:for="{{categoryOptions}}"
+        wx:key="value"
+        class="chip category-chip {{activeCategory === item.value ? 'chip-active chip-category-active' : ''}}"
+        data-value="{{item.value}}"
+        bindtap="handleCategoryTap"
+      >
+        {{item.label}}
+      </view>
+    </view>
+  </view>
+
+  <view class="list-section">
+    <view class="list-header">
+      <text class="section-title">物品列表</text>
+      <text class="section-subtitle">按到期优先级排序</text>
+    </view>
+
+    <block wx:if="{{items.length}}">
+      <view
+        wx:for="{{items}}"
+        wx:key="id"
+        class="card item-card"
+        data-id="{{item.id}}"
+        bindtap="handleCardTap"
+      >
+        <view class="item-main">
+          <view
+            class="item-thumb"
+            style="background: {{item.categoryColor}}; color: {{item.categoryTextColor}};"
+          >
+            <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill" class="thumb-image" />
+            <text wx:else class="thumb-initial">{{item.displayInitial}}</text>
+          </view>
+
+          <view class="item-copy">
+            <view class="item-topline">
+              <view class="item-heading">
+                <text class="item-name">{{item.name}}</text>
+                <text
+                  class="item-category-badge"
+                  style="background: {{item.categoryColor}}; color: {{item.categoryTextColor}};"
+                >{{item.categoryLabel}}</text>
+              </view>
+              <text class="status-badge status-{{item.statusType}}">{{item.statusText}}</text>
+            </view>
+            <text class="item-description">{{item.descriptionText}}</text>
+
+            <view class="progress-block">
+              <view class="progress-track">
+                <view
+                  class="progress-fill"
+                  style="width: {{item.remainingPercent}}%; background: {{item.progressColor}};"
+                ></view>
+              </view>
+              <view class="progress-meta">
+                <text class="progress-days">{{item.statusText}}</text>
+                <text class="progress-percent">{{item.remainingPercent}}%</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <view wx:else class="card empty-card">
+      <text class="empty-title">{{emptyText}}</text>
+      <view class="empty-action" bindtap="handleEmptyAction">{{emptyActionText}}</view>
+    </view>
+  </view>
+</view>

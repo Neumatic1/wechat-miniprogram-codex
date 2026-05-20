@@ -1,0 +1,78 @@
+<view class="page-shell template-page">
+  <view wx:if="{{!unlocked}}" class="card unlock-card">
+    <text class="unlock-title">解锁模板自定义管理</text>
+    <text class="unlock-body">转发一次小程序后，你就可以新增自己的模板和分类，让录入物品更快。</text>
+    <button class="button-primary share-button" open-type="share" bindtap="handlePrepareShareUnlock">转发小程序并解锁</button>
+  </view>
+
+  <block wx:else>
+    <view class="card category-card">
+      <view class="category-card-head">
+        <text class="section-title">分类管理</text>
+        <text class="category-remaining">还可新增 {{customCategoryRemainingCount}} 个</text>
+      </view>
+      <view class="category-create-row">
+        <input class="field-input category-input" value="{{newCategoryName}}" placeholder="输入新分类名称" bindinput="handleNewCategoryInput" />
+        <view class="category-add-button" bindtap="handleAddCategory">新增分类</view>
+      </view>
+      <view class="category-chip-list">
+        <view wx:for="{{customCategories}}" wx:key="value" class="category-chip-item">{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="card form-card">
+      <text class="section-title">模板管理</text>
+      <text class="manager-subtitle">新增模板时只填四项：模板名、分类、周期、提醒。</text>
+
+      <view class="form-field">
+        <text class="field-label">模板名称</text>
+        <input class="field-input" value="{{form.name}}" placeholder="例如：净水滤芯" bindinput="handleNameInput" />
+      </view>
+
+      <view class="form-field">
+        <text class="field-label">分类</text>
+        <picker range="{{categoryOptions}}" range-key="label" bindchange="handleCategoryChange">
+          <view class="field-picker">{{formCategoryLabel}}</view>
+        </picker>
+      </view>
+
+      <view class="field-grid">
+        <view class="form-field field-half">
+          <text class="field-label">周期天数</text>
+          <input class="field-input" type="number" value="{{form.cycleDays}}" bindinput="handleCycleInput" />
+        </view>
+        <view class="form-field field-half">
+          <text class="field-label">提醒天数</text>
+          <input class="field-input" type="number" value="{{form.remindThresholdDays}}" bindinput="handleRemindInput" />
+        </view>
+      </view>
+
+      <view class="form-actions">
+        <view class="button-primary form-submit" bindtap="handleSubmitTemplate">{{editingId ? '保存模板' : '新增模板'}}</view>
+        <view wx:if="{{editingId}}" class="secondary-pill" bindtap="handleCancelForm">取消编辑</view>
+      </view>
+    </view>
+
+    <view wx:if="{{customTemplates.length}}" class="template-list">
+      <view wx:for="{{customTemplates}}" wx:key="id" class="card template-card">
+        <view class="template-card-top">
+          <view>
+            <text class="template-card-name">{{item.name}}</text>
+            <text class="template-card-meta">{{item.categoryLabel}}</text>
+          </view>
+          <text class="template-card-badge">{{item.cycleDays}} 天</text>
+        </view>
+        <text class="template-card-detail">提前 {{item.remindThresholdDays}} 天提醒</text>
+        <view class="template-card-actions">
+          <view class="secondary-pill" data-id="{{item.id}}" bindtap="handleEditTemplate">编辑</view>
+          <view class="secondary-pill danger-pill" data-id="{{item.id}}" bindtap="handleDeleteTemplate">删除</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="card empty-card">
+      <text class="empty-title">还没有自定义模板</text>
+      <text class="empty-body">先创建一个最常用的模板，录入物品会更快。</text>
+    </view>
+  </block>
+</view>

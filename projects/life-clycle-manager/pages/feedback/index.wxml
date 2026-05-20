@@ -1,0 +1,61 @@
+<view class="page-shell feedback-page">
+  <view class="card intro-card">
+    <text class="feedback-title">功能反馈</text>
+    <text class="feedback-desc">只要选类型、写一句话，再附上截图就行。提交后会直接进入云端反馈库。</text>
+  </view>
+
+  <view class="card form-card">
+    <view class="form-section">
+      <text class="section-title">反馈类型</text>
+      <view class="chip-row">
+        <view
+          wx:for="{{feedbackTypes}}"
+          wx:key="value"
+          class="chip {{form.type === item.value ? 'chip-active' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="handleTypeTap"
+        >
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+
+    <view class="form-section">
+      <text class="field-label">一句话描述</text>
+      <textarea
+        class="field-textarea"
+        value="{{form.message}}"
+        bindinput="handleMessageInput"
+        maxlength="200"
+        placeholder="例如：开发者工具里替换图片后同步失败；或，希望首页支持按分类折叠"
+      ></textarea>
+    </view>
+
+    <view class="form-section">
+      <view class="upload-head">
+        <text class="field-label">截图</text>
+        <text class="upload-count">{{screenshots.length}} / 3</text>
+      </view>
+
+      <view class="screenshot-list">
+        <view wx:for="{{screenshots}}" wx:key="index" class="screenshot-item">
+          <image class="screenshot-image" src="{{item}}" mode="aspectFill"></image>
+          <view class="screenshot-remove" data-index="{{index}}" bindtap="handleRemoveScreenshot">×</view>
+        </view>
+
+        <view wx:if="{{screenshots.length < 3}}" class="screenshot-add" bindtap="handleChooseScreenshot">
+          <text class="screenshot-add-plus">+</text>
+          <text class="screenshot-add-text">添加截图</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="button-primary feedback-submit" bindtap="handleSubmit">
+      {{submitting ? '提交中...' : '提交反馈'}}
+    </view>
+  </view>
+
+  <view class="card tips-card">
+    <text class="tips-text">反馈会先写进云开发数据库 `lifeCycleFeedbacks`，截图会进云存储 `life-cycle-feedbacks/` 目录；如果云函数已配置 QQ 邮箱授权码，还会额外发送邮件通知。</text>
+  </view>
+</view>

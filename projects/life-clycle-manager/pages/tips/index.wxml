@@ -1,0 +1,21 @@
+<view class="page-shell tips-page">
+  <view class="card tips-card">
+    <text class="tips-title">{{template.name}} 推荐说明</text>
+    <text class="tips-recommendation">{{tip ? tip.recommendation : '当前模板暂无权威推荐，建议优先以包装说明、品牌建议或实际使用状态为准。'}}</text>
+  </view>
+
+  <view wx:if="{{tip}}" class="card tips-card">
+    <text class="section-title">依据来源</text>
+    <text class="tips-authority">{{tip.authority}}</text>
+    <text class="tips-body">{{tip.evidence}}</text>
+    <view class="tips-source-row">
+      <text class="tips-source-url">{{tip.sourceUrl}}</text>
+      <view class="tips-copy" bindtap="handleCopySource">复制链接</view>
+    </view>
+  </view>
+
+  <view wx:else class="card tips-card">
+    <text class="section-title">说明</text>
+    <text class="tips-body">这类物品更适合结合包装说明、品牌建议和实际磨损情况来设置周期。你也可以先设置一个提醒天数，后续再逐步调整。</text>
+  </view>
+</view>

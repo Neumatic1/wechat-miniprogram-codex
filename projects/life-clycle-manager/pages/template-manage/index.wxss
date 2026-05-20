@@ -1,0 +1,173 @@
+.template-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.unlock-card,
+.category-card,
+.form-card,
+.empty-card,
+.template-card {
+  padding: 30rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.unlock-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #2d3b2f;
+}
+
+.unlock-body,
+.manager-subtitle,
+.empty-body,
+.template-card-detail {
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #768176;
+}
+
+.share-button {
+  width: 100%;
+  border: 0;
+}
+
+.share-button::after {
+  border: 0;
+}
+
+.category-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.category-remaining {
+  font-size: 22rpx;
+  color: #7b857a;
+}
+
+.category-create-row {
+  display: flex;
+  gap: 14rpx;
+}
+
+.category-input {
+  flex: 1;
+}
+
+.category-add-button {
+  flex-shrink: 0;
+  height: 84rpx;
+  padding: 0 24rpx;
+  border-radius: 22rpx;
+  background: #8ea989;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 600;
+}
+
+.category-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.category-chip-item {
+  padding: 12rpx 18rpx;
+  border-radius: 999rpx;
+  background: #eef4e8;
+  color: #63825a;
+  font-size: 22rpx;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.field-label {
+  font-size: 24rpx;
+  color: #667165;
+}
+
+.field-input,
+.field-picker {
+  min-height: 84rpx;
+  padding: 0 24rpx;
+  border-radius: 22rpx;
+  background: #f7f2e8;
+  font-size: 28rpx;
+  color: #2c372d;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.field-grid {
+  display: flex;
+  gap: 20rpx;
+}
+
+.field-half {
+  flex: 1;
+}
+
+.form-actions,
+.template-card-actions {
+  display: flex;
+  gap: 14rpx;
+  flex-wrap: wrap;
+}
+
+.form-submit {
+  flex: 1;
+}
+
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.template-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.template-card-name {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #2f3d31;
+}
+
+.template-card-meta {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #7d877c;
+}
+
+.template-card-badge {
+  align-self: flex-start;
+  padding: 10rpx 16rpx;
+  border-radius: 999rpx;
+  background: #eef4e8;
+  color: #63825a;
+  font-size: 22rpx;
+}
+
+.empty-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #314032;
+}

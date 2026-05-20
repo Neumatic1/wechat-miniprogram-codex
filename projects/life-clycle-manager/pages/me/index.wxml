@@ -1,0 +1,87 @@
+<view class="page-shell me-page">
+  <view class="card profile-card">
+    <view class="profile-top">
+      <view class="profile-avatar">
+        <image wx:if="{{hasAvatar}}" class="profile-avatar-image" src="{{profile.avatarUrl}}" mode="aspectFill"></image>
+        <text wx:else class="profile-avatar-text">{{avatarText}}</text>
+      </view>
+      <view class="profile-copy">
+        <text class="profile-name">{{profileName}}</text>
+        <text class="profile-desc">{{profileDesc}}</text>
+        <text class="profile-detail">{{profileDetail}}</text>
+      </view>
+    </view>
+
+    <view class="profile-actions">
+      <view wx:if="{{!profile.loggedIn}}" class="button-primary profile-button" bindtap="handleLogin">{{loginButtonText}}</view>
+      <block wx:else>
+        <view class="button-primary profile-button" bindtap="handleSyncNow">{{syncButtonText}}</view>
+        <view class="secondary-pill" bindtap="handleRestoreFromCloud">从云端恢复</view>
+        <view class="secondary-pill danger-pill" bindtap="handleLogout">退出登录</view>
+      </block>
+    </view>
+  </view>
+
+  <view class="card sync-status-card">
+    <text class="section-title">同步状态</text>
+    <view class="sync-status-row">
+      <text class="sync-status-label">{{syncOverview.lastSyncLabel}}</text>
+      <text class="sync-status-value">{{syncOverview.lastSyncValue}}</text>
+    </view>
+    <view class="sync-status-row">
+      <text class="sync-status-label">{{syncOverview.pendingLabel}}</text>
+      <text class="sync-status-value {{syncOverview.hasPendingLocalChanges ? 'sync-status-warning' : 'sync-status-ok'}}">{{syncOverview.pendingValue}}</text>
+    </view>
+    <text wx:if="{{syncOverview.pendingDetail}}" class="sync-status-detail">{{syncOverview.pendingDetail}}</text>
+  </view>
+
+  <view class="stats-row">
+    <view class="card stat-card">
+      <text class="stat-value">{{managedCount}}</text>
+      <text class="stat-label">已管理物品</text>
+    </view>
+    <view class="card stat-card">
+      <text class="stat-value">{{customTemplateCount}}</text>
+      <text class="stat-label">自定义模板</text>
+    </view>
+  </view>
+
+  <view class="card menu-card">
+    <view class="menu-row" bindtap="handleOpenTemplates">
+      <view class="menu-copy">
+        <text class="menu-title">模板库</text>
+        <text class="menu-desc">查看和管理你的自定义模板</text>
+      </view>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-divider"></view>
+    <view class="menu-row" bindtap="handleOpenGuide">
+      <view class="menu-copy">
+        <text class="menu-title">使用说明</text>
+        <text class="menu-desc">快速了解登录、同步和模板解锁</text>
+      </view>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-divider"></view>
+    <view class="menu-row" bindtap="handleFeedback">
+      <view class="menu-copy">
+        <text class="menu-title">功能反馈</text>
+        <text class="menu-desc">一句话描述问题或建议，再附截图即可</text>
+      </view>
+      <text class="menu-arrow">›</text>
+    </view>
+    <view class="menu-divider"></view>
+    <view class="menu-row danger-row" bindtap="handleClearLocalData">
+      <view class="menu-copy">
+        <text class="menu-title danger-text">删除本地数据</text>
+        <text class="menu-desc">仅清空当前设备，不影响云端数据</text>
+      </view>
+      <text class="menu-arrow danger-text">›</text>
+    </view>
+  </view>
+
+  <view class="card tip-card">
+    <text class="section-title">同步说明</text>
+    <text class="tip-text">未登录时，默认数据只存在本机。登录后，应用会尝试将当前数据与后续修改同步到云端；如果你还没有配置云开发，界面会继续走本地模式，但不会影响正常使用。</text>
+  </view>
+</view>

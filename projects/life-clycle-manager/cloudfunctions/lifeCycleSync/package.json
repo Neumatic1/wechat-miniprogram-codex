@@ -1,0 +1,10 @@
+{
+  "name": "life-cycle-sync",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {
+    "nodemailer": "^6.10.0",
+    "wx-server-sdk": "^3.0.1"
+  }
+}

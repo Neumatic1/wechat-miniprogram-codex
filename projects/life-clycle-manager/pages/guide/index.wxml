@@ -1,0 +1,11 @@
+<view class="page-shell guide-page">
+  <view class="card guide-intro">
+    <text class="guide-title">使用说明</text>
+    <text class="guide-desc">这页把目前最容易混淆的几个点说明白，尤其是本地数据、云同步和模板解锁。</text>
+  </view>
+
+  <view wx:for="{{sections}}" wx:key="title" class="card guide-card">
+    <text class="guide-section-title">{{item.title}}</text>
+    <text class="guide-section-body">{{item.body}}</text>
+  </view>
+</view>

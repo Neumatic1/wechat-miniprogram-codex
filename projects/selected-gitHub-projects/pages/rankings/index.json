@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "GitHub热门项目排行榜",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "repo-card": "/components/repo-card/index",
+    "status-view": "/components/status-view/index"
+  }
+}

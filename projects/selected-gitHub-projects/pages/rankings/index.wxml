@@ -1,0 +1,67 @@
+<view class="page-shell rankings-page">
+  <view class="hero glass-card">
+    <view class="hero-title-row">
+      <text class="hero-badge">GitHub</text>
+      <text class="hero-title-main">热门项目排行榜</text>
+    </view>
+    <text class="hero-subtitle-single">发现近期增长速度最快的开源项目</text>
+  </view>
+
+  <view class="period-switcher glass-card">
+    <view
+      wx:for="{{periods}}"
+      wx:key="key"
+      class="period-chip {{currentPeriod === item.key ? 'period-chip--active' : ''}}"
+      data-period="{{item.key}}"
+      bindtap="setPeriod"
+    >
+      <text>{{item.label}}</text>
+    </view>
+  </view>
+
+  <view class="update-row">
+    <text class="muted-text">{{periodLabel}}更新于 {{updatedAt || '加载中'}}</text>
+  </view>
+
+  <block wx:if="{{loading && !items.length}}">
+    <view wx:for="{{skeletonRows}}" wx:key="*this" class="skeleton-card glass-card">
+      <view class="skeleton-line skeleton-line--title"></view>
+      <view class="skeleton-line"></view>
+      <view class="skeleton-line skeleton-line--short"></view>
+      <view class="skeleton-tags">
+        <view class="skeleton-pill"></view>
+        <view class="skeleton-pill"></view>
+        <view class="skeleton-pill"></view>
+      </view>
+    </view>
+  </block>
+
+  <status-view
+    wx:elif="{{errorMessage}}"
+    title="榜单加载失败"
+    description="{{errorMessage}}"
+    actionText="重新加载"
+    bindactiontap="retryLoad"
+  />
+
+  <status-view
+    wx:elif="{{!items.length}}"
+    title="当前榜单暂无数据"
+    description="稍后再来看看新的热门项目"
+    actionText="重新加载"
+    bindactiontap="retryLoad"
+  />
+
+  <view wx:else class="repo-list">
+    <repo-card
+      wx:for="{{items}}"
+      wx:key="repoId"
+      repo="{{item}}"
+      isFavorite="{{item.isFavorite}}"
+      showRank="{{true}}"
+      showGrowth="{{true}}"
+      bindcardtap="handleCardTap"
+      bindfavoritetap="handleFavoriteTap"
+    />
+  </view>
+</view>

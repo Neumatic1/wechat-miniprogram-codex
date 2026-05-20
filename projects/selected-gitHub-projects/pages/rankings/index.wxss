@@ -1,0 +1,114 @@
+.hero {
+  padding: 32rpx 30rpx;
+}
+
+.hero-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60rpx;
+  padding: 0 20rpx;
+  border-radius: 18rpx;
+  background: linear-gradient(135deg, #d9a441, #f2cc73);
+  color: #111318;
+  font-size: 30rpx;
+  line-height: 1;
+  font-weight: 700;
+  box-shadow: 0 12rpx 24rpx rgba(217, 164, 65, 0.2);
+}
+
+.hero-title-main {
+  color: #f5f2e8;
+  font-size: 46rpx;
+  line-height: 1.16;
+  font-weight: 700;
+}
+
+.hero-subtitle-single {
+  display: block;
+  margin-top: 18rpx;
+  color: #c4bda8;
+  font-size: 24rpx;
+  line-height: 1.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.period-switcher {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+  padding: 14rpx;
+}
+
+.period-chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 72rpx;
+  border-radius: 22rpx;
+  color: #c4bda8;
+  font-size: 26rpx;
+}
+
+.period-chip--active {
+  background: linear-gradient(135deg, #d9a441, #f2cc73);
+  color: #111318;
+  font-weight: 600;
+}
+
+.update-row {
+  margin: 20rpx 8rpx 24rpx;
+  font-size: 22rpx;
+}
+
+.repo-list {
+  padding-bottom: 24rpx;
+}
+
+.skeleton-card {
+  padding: 28rpx;
+}
+
+.skeleton-card + .skeleton-card {
+  margin-top: 24rpx;
+}
+
+.skeleton-line {
+  height: 28rpx;
+  margin-top: 18rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, rgba(43, 47, 56, 0.65), rgba(68, 73, 83, 0.9), rgba(43, 47, 56, 0.65));
+}
+
+.skeleton-line--title {
+  width: 62%;
+  height: 34rpx;
+  margin-top: 0;
+}
+
+.skeleton-line--short {
+  width: 48%;
+}
+
+.skeleton-tags {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.skeleton-pill {
+  width: 130rpx;
+  height: 44rpx;
+  border-radius: 999rpx;
+  background: rgba(43, 47, 56, 0.82);
+}

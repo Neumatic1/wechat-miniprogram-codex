@@ -1,0 +1,8 @@
+<view class="status-view glass-card">
+  <view class="status-view__mark">·</view>
+  <text class="status-view__title">{{title}}</text>
+  <text class="status-view__description">{{description}}</text>
+  <button wx:if="{{actionText}}" class="status-view__action" bindtap="handleActionTap">
+    {{actionText}}
+  </button>
+</view>

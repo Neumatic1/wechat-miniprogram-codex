@@ -1,0 +1,10 @@
+{
+  "name": "seed-mock-data",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.18.1",
+    "wx-server-sdk": "latest"
+  }
+}

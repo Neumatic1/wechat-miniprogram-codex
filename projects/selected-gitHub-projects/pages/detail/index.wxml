@@ -1,0 +1,76 @@
+<view class="page-shell detail-page">
+  <block wx:if="{{loading}}">
+    <view class="hero glass-card">
+      <view class="detail-skeleton detail-skeleton--title"></view>
+      <view class="detail-skeleton"></view>
+      <view class="detail-skeleton detail-skeleton--short"></view>
+    </view>
+  </block>
+
+  <status-view
+    wx:elif="{{errorMessage}}"
+    title="项目数据暂不可用"
+    description="{{errorMessage}}"
+    actionText="重新加载"
+    bindactiontap="retryLoad"
+  />
+
+  <block wx:elif="{{repo}}">
+    <view class="hero glass-card">
+      <view class="hero__head">
+        <view class="hero__title-group">
+          <text class="page-title">{{repo.fullName}}</text>
+          <text class="page-subtitle">{{repo.description}}</text>
+        </view>
+        <view class="pill-button" bindtap="handleFavoriteTap">
+          <text>{{favorite ? '已收藏' : '收藏项目'}}</text>
+        </view>
+      </view>
+
+      <view class="hero__tags">
+        <text class="tag">{{repo.languageLabel}}</text>
+        <text class="tag tag--muted">★ {{repo.displayStars}}</text>
+        <text class="tag tag--muted">Fork {{repo.displayForks}}</text>
+        <text class="tag">{{repo.displayGrowth}}</text>
+      </view>
+    </view>
+
+    <view class="section glass-card">
+      <text class="section-title">一句话介绍</text>
+      <text class="body-text">{{repo.summaryZh || '中文介绍生成中，请稍后再来看。'}}</text>
+    </view>
+
+    <view class="section glass-card">
+      <text class="section-title">这个项目做什么</text>
+      <text class="body-text">{{repo.whatItDoes || repo.description || 'More details coming soon.'}}</text>
+    </view>
+
+    <view class="section glass-card">
+      <text class="section-title">核心亮点</text>
+      <view wx:if="{{repo.highlights && repo.highlights.length}}" class="bullet-list">
+        <view wx:for="{{repo.highlights}}" wx:key="*this" class="bullet-item">
+          <text class="bullet-dot"></text>
+          <text class="body-text bullet-text">{{item}}</text>
+        </view>
+      </view>
+      <text wx:else class="body-text">Structured highlights are not available yet. Check the repo description and GitHub link first.</text>
+    </view>
+
+    <view class="section glass-card">
+      <text class="section-title">适用场景</text>
+      <view wx:if="{{repo.useCases && repo.useCases.length}}" class="bullet-list">
+        <view wx:for="{{repo.useCases}}" wx:key="*this" class="bullet-item">
+          <text class="bullet-dot"></text>
+          <text class="body-text bullet-text">{{item}}</text>
+        </view>
+      </view>
+      <text wx:else class="body-text">Use cases are not available yet. They can be filled in after the summary pipeline is added.</text>
+    </view>
+
+    <view class="section glass-card">
+      <text class="section-title">GitHub 链接</text>
+      <text class="body-text link-text">{{repo.githubUrl}}</text>
+      <button class="action-button" bindtap="handleCopyTap">复制链接</button>
+    </view>
+  </block>
+</view>

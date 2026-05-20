@@ -1,0 +1,159 @@
+<view class="page-shell create-page">
+  <view class="create-section">
+    <view class="section-head">
+      <text class="section-title">按分类选择模板</text>
+      <view class="manage-entry-button" bindtap="handleOpenTemplateManage">自定义模板和分类</view>
+    </view>
+    <view class="chip-row template-category-row">
+      <view
+        wx:for="{{templateCategories}}"
+        wx:key="value"
+        class="chip small-chip {{activeTemplateCategory === item.value ? 'chip-active' : ''}}"
+        data-value="{{item.value}}"
+        bindtap="handleTemplateCategoryTap"
+      >
+        {{item.label}}
+      </view>
+    </view>
+
+    <scroll-view scroll-x class="template-scroll" enable-flex>
+      <view class="template-pages">
+        <view wx:for="{{templatePages}}" wx:key="index" class="template-page">
+          <view
+            wx:for="{{item}}"
+            wx:for-item="template"
+            wx:key="id"
+            class="card template-tile {{form.templateId === template.id ? 'template-tile-active' : ''}}"
+            data-id="{{template.id}}"
+            bindtap="handleTemplateTap"
+          >
+            <text class="template-tile-name">{{template.name}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="create-section">
+    <text class="section-title">基本信息</text>
+    <view class="card form-card">
+      <view class="form-field">
+        <text class="field-label">物品名称</text>
+        <input class="field-input" value="{{form.name}}" bindinput="handleNameInput" />
+      </view>
+
+      <view class="form-field">
+        <text class="field-label">物品图片</text>
+        <view class="upload-row">
+          <view wx:if="{{form.imageUrl}}" class="upload-preview-wrap">
+            <image class="upload-preview" src="{{form.imageUrl}}" mode="aspectFill"></image>
+            <view class="upload-preview-actions">
+              <view class="upload-mini-btn" bindtap="handleChooseImage">更换</view>
+              <view class="upload-mini-btn upload-mini-danger" bindtap="handleRemoveImage">移除</view>
+            </view>
+          </view>
+          <view wx:else class="upload-box" bindtap="handleChooseImage">
+            <text class="upload-plus">+</text>
+            <text class="upload-text">上传图片</text>
+          </view>
+        </view>
+        <text class="field-helper upload-helper">开发者工具里如果本地图片上传到云存储失败，请直接用真机验证图片同步。</text>
+      </view>
+
+      <view class="form-field">
+        <text class="field-label">提醒动作</text>
+        <view class="chip-row">
+          <view
+            wx:for="{{actionOptions}}"
+            wx:key="value"
+            class="chip {{form.actionType === item.value ? 'chip-active' : ''}}"
+            data-value="{{item.value}}"
+            bindtap="handleActionTap"
+          >
+            {{item.label}}
+          </view>
+        </view>
+      </view>
+
+      <view class="form-field">
+        <text class="field-label">{{startLabel}}</text>
+        <picker mode="date" value="{{form.startAt}}" bindchange="handleStartDateChange">
+          <view class="field-picker">{{form.startAt}}</view>
+        </picker>
+      </view>
+
+      <view class="field-grid">
+        <view class="form-field field-half">
+          <view class="field-label-row">
+            <text class="field-label">周期天数</text>
+            <view wx:if="{{selectedTip}}" class="tip-button" bindtap="handleOpenTip">!</view>
+          </view>
+          <view class="field-input-wrap" bindtap="handleFocusCycleInput">
+            <input
+              class="field-input"
+              type="number"
+              value="{{form.cycleDays}}"
+              focus="{{cycleInputFocus}}"
+              bindinput="handleCycleInput"
+              bindblur="handleCycleBlur"
+            />
+          </view>
+          <view class="chip-row cycle-quick-row">
+            <view
+              wx:for="{{cycleQuickOptions}}"
+              wx:key="value"
+              class="chip quick-cycle-chip {{activeCyclePreset === item.value ? 'chip-active' : ''}}"
+              data-value="{{item.value}}"
+              bindtap="handleCyclePresetTap"
+            >
+              {{item.label}}
+            </view>
+          </view>
+        </view>
+
+        <view class="form-field field-half">
+          <text class="field-label">提前提醒</text>
+          <view class="field-input-wrap" bindtap="handleFocusRemindInput">
+            <input
+              class="field-input"
+              type="number"
+              value="{{form.remindThresholdDays}}"
+              focus="{{remindInputFocus}}"
+              bindinput="handleRemindInput"
+              bindblur="handleRemindBlur"
+            />
+          </view>
+          <view wx:if="{{showRemindQuickOptions}}" class="chip-row cycle-quick-row">
+            <view
+              wx:for="{{remindQuickOptions}}"
+              wx:key="value"
+              class="chip quick-cycle-chip {{activeRemindPreset === item.value ? 'chip-active' : ''}}"
+              data-value="{{item.value}}"
+              bindtap="handleRemindPresetTap"
+            >
+              {{item.label}}
+            </view>
+          </view>
+          <text wx:elif="{{remindHelperText}}" class="field-helper">{{remindHelperText}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="submit-bar-fixed">
+    <view class="button-primary submit-button" bindtap="handleSubmit">{{submitting ? '保存中...' : submitText}}</view>
+  </view>
+
+  <view wx:if="{{tipVisible && selectedTip}}" class="tip-mask" catchtap="handleCloseTip">
+    <view class="tip-dialog card" catchtap="noop">
+      <view class="tip-dialog-head">
+        <text class="tip-dialog-title">{{selectedTemplate.name}} 推荐说明</text>
+        <view class="tip-dialog-close" bindtap="handleCloseTip">×</view>
+      </view>
+      <text class="tip-dialog-recommendation">{{selectedTip.recommendation}}</text>
+      <text class="tip-dialog-authority">{{selectedTip.authority}}</text>
+      <text class="tip-dialog-body">{{selectedTip.evidence}}</text>
+      <text class="tip-dialog-link">{{selectedTip.sourceUrl}}</text>
+    </view>
+  </view>
+</view>
