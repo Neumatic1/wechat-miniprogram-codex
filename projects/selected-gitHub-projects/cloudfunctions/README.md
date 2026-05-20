@@ -39,5 +39,7 @@
 
 - 微信开发者工具部署云函数时，按单个函数目录上传；不要依赖父目录共享代码自动被打包。
 - `syncGithubRepos` 支持通过事件参数覆盖默认抓取配置：`queries`、`perPage`、`maxRepos`、`dryRun`。
+- `syncGithubRepos` 第一次联调建议把云函数超时时间调到 `10s` 或更高；默认 `3s` 很容易在访问 GitHub API 和写数据库时超时。
+- 如果只是验证 token 和网络是否正常，先用 `{"dryRun": true, "perPage": 3, "maxRepos": 3}` 做一次轻量测试。
 - 当前详情页已经对缺失的中文摘要、亮点、使用场景做了兜底，所以真实仓库先接入时页面不会直接空白。
 - 如果后续要完全摆脱种子数据，下一步建议补 `generateRepoSummaries`，把 `summaryZh`、`whatItDoes`、`highlights`、`useCases` 这条链补齐。

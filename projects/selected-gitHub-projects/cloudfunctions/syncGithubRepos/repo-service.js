@@ -13,9 +13,7 @@ function toIsoDate(daysAgo) {
 
 function getDefaultQueries() {
   return [
-    `stars:>=500 pushed:>=${toIsoDate(14)} archived:false`,
-    `topic:ai stars:>=200 pushed:>=${toIsoDate(30)} archived:false`,
-    `topic:developer-tools stars:>=200 pushed:>=${toIsoDate(30)} archived:false`
+    `stars:>=500 pushed:>=${toIsoDate(14)} archived:false`
   ];
 }
 
@@ -60,27 +58,23 @@ function normalizeRepository(repo, capturedAt) {
   };
 }
 
-async function getExistingRepository(db, repoId) {
-  try {
-    const result = await db.collection(COLLECTIONS.repositories).doc(repoId).get();
-    return result.data || {};
-  } catch (error) {
-    return {};
-  }
-}
-
 async function writeRepositories(db, repositories, capturedAt) {
   const writes = repositories.map(async (repository) => {
-    const existing = await getExistingRepository(db, repository.repoId);
-    const nextRecord = Object.assign({}, existing, repository, {
+    const nextRecord = Object.assign({}, repository, {
       updatedAt: capturedAt,
       lastSyncedAt: capturedAt,
       source: "syncGithubRepos"
     });
 
-    await db.collection(COLLECTIONS.repositories).doc(repository.repoId).set({
-      data: nextRecord
-    });
+    try {
+      await db.collection(COLLECTIONS.repositories).doc(repository.repoId).update({
+        data: nextRecord
+      });
+    } catch (error) {
+      await db.collection(COLLECTIONS.repositories).doc(repository.repoId).set({
+        data: nextRecord
+      });
+    }
 
     const snapshotId = buildSnapshotId(repository.repoId, capturedAt);
     await db.collection(COLLECTIONS.starSnapshots).doc(snapshotId).set({
@@ -110,8 +104,8 @@ async function fetchRepositories(options = {}) {
     Array.isArray(options.queries) && options.queries.length
       ? options.queries
       : getDefaultQueries();
-  const perPage = Math.min(Math.max(Number(options.perPage) || 10, 1), 30);
-  const maxRepos = Math.min(Math.max(Number(options.maxRepos) || 30, 1), 50);
+  const perPage = Math.min(Math.max(Number(options.perPage) || 5, 1), 20);
+  const maxRepos = Math.min(Math.max(Number(options.maxRepos) || 5, 1), 20);
   const capturedAt = options.capturedAt || new Date().toISOString();
 
   const results = await Promise.all(
