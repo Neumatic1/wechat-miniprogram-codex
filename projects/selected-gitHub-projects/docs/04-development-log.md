@@ -62,8 +62,21 @@
   `REPO_SUMMARY_ALLOW_RULE_FALLBACK`
 - 模型失败时允许回退到规则版摘要，但会把来源与失败原因写入仓库字段，便于追踪
 
+### 4. 榜单同步切换为 GitHub Trending 直连
+
+- `cloudfunctions/syncGithubRepos/github-client.js`
+- `cloudfunctions/syncGithubRepos/repo-service.js`
+
+改动说明：
+
+- 不再依赖本地 `calculateRankings` 去近似推导日榜、周榜、月榜
+- `syncGithubRepos` 直接抓取 GitHub Trending 的 `daily / weekly / monthly`
+- 同步时会把三个周期的榜单直接写入 `ranking_snapshots`
+- 同步时仍会回写 `repositories` 与 `star_snapshots`，保证详情页和后续摘要链继续可用
+
 ## 当前风险与待办
 
 - `generateRepoSummaries` 需要在微信云开发控制台配置摘要模型环境变量后，才能走真正的模型链路
 - 目前尚未在真实云环境完成 `getRankings/getRepoDetail` 的异常回退联调，需要在开发者工具中验证前端提示条是否符合预期
 - 如果后续要进一步提升摘要质量，可以考虑补充 README 抓取、主页链接、最近 release 等更丰富的输入上下文
+- `syncGithubRepos` 切到 Trending 直连后，需要重新部署该云函数并重新跑一次，才能让周榜/月榜和日榜真正区分开

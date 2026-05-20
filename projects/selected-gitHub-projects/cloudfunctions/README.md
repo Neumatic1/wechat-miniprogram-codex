@@ -5,9 +5,9 @@
 - `seedMockData`
   初始化演示数据，快速打通数据库读链路。
 - `syncGithubRepos`
-  从 GitHub API 抓取候选仓库，写入 `repositories` 和 `star_snapshots`。
+  直接抓取 GitHub Trending 的 `daily / weekly / monthly` 榜单，写入 `repositories`、`star_snapshots` 和 `ranking_snapshots`。
 - `calculateRankings`
-  基于仓库信息和 star 快照计算 `daily` / `weekly` / `monthly` 榜单，写入 `ranking_snapshots`。
+  基于仓库信息和 star 快照计算 `daily` / `weekly` / `monthly` 榜单，写入 `ranking_snapshots`。现在主要作为备用计算链路保留。
 - `generateRepoSummaries`
   为仓库补齐 `summaryZh`、`whatItDoes`、`highlights`、`useCases` 等结构化中文摘要字段。
 - `getRankings`
@@ -32,9 +32,9 @@
 4. 在小程序前端验证榜单页和详情页已经能从数据库读取演示数据
 5. 在云函数环境变量中配置 `GITHUB_TOKEN` 或 `GH_TOKEN`
 6. 部署 `syncGithubRepos`
-7. 先用 `{"dryRun": true, "perPage": 3, "maxRepos": 3}` 调用一次 `syncGithubRepos`
-8. 部署 `calculateRankings`
-9. 手动调用一次 `calculateRankings`
+7. 先用 `{"dryRun": true, "maxRepos": 3}` 调用一次 `syncGithubRepos`
+8. 再用 `{"dryRun": false, "maxRepos": 10}` 调用一次 `syncGithubRepos`
+9. 如果你还想保留“自计算榜单”的备用链路，再单独部署并调用 `calculateRankings`
 10. 在云函数环境变量中配置摘要链：
     `REPO_SUMMARY_API_KEY`
     `REPO_SUMMARY_MODEL`
@@ -61,8 +61,8 @@
 ## Notes
 
 - 微信开发者工具部署云函数时，按单个函数目录上传；不要依赖父目录共享代码自动被打包。
-- `syncGithubRepos` 支持通过事件参数覆盖默认抓取配置：`queries`、`perPage`、`maxRepos`、`dryRun`。
-- `syncGithubRepos` 第一次联调建议把云函数超时时间调到 `10s` 或更高；默认 `3s` 很容易在访问 GitHub API 和写数据库时超时。
+- `syncGithubRepos` 支持通过事件参数覆盖抓取配置：`periods`、`maxRepos`、`dryRun`。
+- `syncGithubRepos` 现在会直接抓 GitHub Trending 页面，并为这些仓库补一次 GitHub API 详情，所以第一次联调建议把云函数超时时间调到 `15s` 或更高。
 - `getRankings` / `getRepoDetail` 现在在数据库读取失败时不会再静默回退。前端会拿到 `meta` 字段并显示“当前展示的是 Mock 回退数据”。
 - `generateRepoSummaries` 会优先处理当前 `daily / weekly / monthly` 榜单里的仓库，再补其它仓库。
 - 大模型摘要链会把来源写回仓库字段：

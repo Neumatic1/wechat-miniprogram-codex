@@ -10,6 +10,8 @@
 - `cloudfunctions/getRankings/repo-service.js`
 - `cloudfunctions/getRepoDetail/repo-service.js`
 - `cloudfunctions/generateRepoSummaries/repo-service.js`
+- `cloudfunctions/syncGithubRepos/github-client.js`
+- `cloudfunctions/syncGithubRepos/repo-service.js`
 
 ## 已执行检查
 
@@ -19,6 +21,7 @@
    `app.json`
    `cloudfunctions/generateRepoSummaries/package.json`
 3. 推送前校验当前工作树相关文件可正常提交，并已成功推送到 GitHub。
+4. 本地调用 Trending 解析链，确认 `daily / weekly / monthly` 返回的 `starGrowth` 已明显不同。
 
 ## 待在微信开发者工具补充的联调
 
@@ -28,6 +31,7 @@
    - `llmCount` 有值
    - `summarySource = llm`
    - 小程序详情页展示中文摘要、亮点、适用场景
+4. 重新部署 `syncGithubRepos` 后，手动调用一次并确认小程序榜单页的日榜、周榜、月榜已不再相同。
 
 ## 当前结论
 

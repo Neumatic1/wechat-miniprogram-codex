@@ -1,21 +1,12 @@
-const { searchRepositories } = require("./github-client");
+const { fetchTrendingRepositories, getRepositoryByFullName } = require("./github-client");
 
 const COLLECTIONS = {
   repositories: "repositories",
-  starSnapshots: "star_snapshots"
+  starSnapshots: "star_snapshots",
+  rankingSnapshots: "ranking_snapshots"
 };
 
-function toIsoDate(daysAgo) {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() - daysAgo);
-  return date.toISOString().slice(0, 10);
-}
-
-function getDefaultQueries() {
-  return [
-    `stars:>=500 pushed:>=${toIsoDate(14)} archived:false`
-  ];
-}
+const DEFAULT_PERIODS = ["daily", "weekly", "monthly"];
 
 function getGithubToken() {
   return process.env.GITHUB_TOKEN || process.env.GH_TOKEN || "";
@@ -33,29 +24,69 @@ function buildSnapshotId(repoId, capturedAt) {
   return `${repoId}__${capturedAt.replace(/[^0-9]/g, "")}`;
 }
 
-function normalizeRepository(repo, capturedAt) {
-  const fullName = repo.full_name || "";
-  const owner = repo.owner && repo.owner.login ? repo.owner.login : "";
-  const name = repo.name || fullName.split("/")[1] || "";
+function normalizeRepository(apiRepo, trendingRepo, capturedAt) {
+  const fullName = (apiRepo && apiRepo.full_name) || trendingRepo.fullName || "";
+  const owner =
+    (apiRepo && apiRepo.owner && apiRepo.owner.login) ||
+    trendingRepo.owner ||
+    fullName.split("/")[0] ||
+    "";
+  const name = (apiRepo && apiRepo.name) || trendingRepo.name || fullName.split("/")[1] || "";
 
   return {
     repoId: buildRepoId(fullName),
     fullName,
     owner,
     name,
-    description: repo.description || "",
-    language: repo.language || "",
-    topics: Array.isArray(repo.topics) ? repo.topics : [],
-    stars: repo.stargazers_count || 0,
-    forks: repo.forks_count || 0,
-    openIssues: repo.open_issues_count || 0,
-    githubUrl: repo.html_url || "",
-    pushedAt: repo.pushed_at || "",
-    createdAt: repo.created_at || "",
+    description:
+      (apiRepo && apiRepo.description) ||
+      trendingRepo.description ||
+      "",
+    language:
+      (apiRepo && apiRepo.language) ||
+      trendingRepo.language ||
+      "",
+    topics:
+      (apiRepo && Array.isArray(apiRepo.topics) && apiRepo.topics) ||
+      trendingRepo.topics ||
+      [],
+    stars:
+      (apiRepo && apiRepo.stargazers_count) ||
+      trendingRepo.stars ||
+      0,
+    forks:
+      (apiRepo && apiRepo.forks_count) ||
+      trendingRepo.forks ||
+      0,
+    openIssues:
+      (apiRepo && apiRepo.open_issues_count) ||
+      trendingRepo.openIssues ||
+      0,
+    githubUrl:
+      (apiRepo && apiRepo.html_url) ||
+      trendingRepo.githubUrl ||
+      "",
+    pushedAt:
+      (apiRepo && apiRepo.pushed_at) ||
+      trendingRepo.pushedAt ||
+      "",
+    createdAt:
+      (apiRepo && apiRepo.created_at) ||
+      trendingRepo.createdAt ||
+      "",
     updatedAt: capturedAt,
     lastSyncedAt: capturedAt,
-    source: "syncGithubRepos"
+    source: "syncGithubTrending"
   };
+}
+
+function normalizePeriods(periods) {
+  const requested = Array.isArray(periods) && periods.length ? periods : DEFAULT_PERIODS;
+
+  return requested
+    .map((item) => String(item || "").trim().toLowerCase())
+    .filter((item) => DEFAULT_PERIODS.includes(item))
+    .filter((item, index, array) => array.indexOf(item) === index);
 }
 
 async function writeRepositories(db, repositories, capturedAt) {
@@ -63,7 +94,7 @@ async function writeRepositories(db, repositories, capturedAt) {
     const nextRecord = Object.assign({}, repository, {
       updatedAt: capturedAt,
       lastSyncedAt: capturedAt,
-      source: "syncGithubRepos"
+      source: "syncGithubTrending"
     });
 
     try {
@@ -85,7 +116,7 @@ async function writeRepositories(db, repositories, capturedAt) {
         forks: repository.forks,
         openIssues: repository.openIssues,
         capturedAt,
-        source: "syncGithubRepos"
+        source: "syncGithubTrending"
       }
     });
   });
@@ -93,67 +124,142 @@ async function writeRepositories(db, repositories, capturedAt) {
   await Promise.all(writes);
 }
 
-async function fetchRepositories(options = {}) {
+async function writeRankingSnapshots(db, trendingByPeriod, capturedAt) {
+  await Promise.all(
+    Object.keys(trendingByPeriod).map((period) =>
+      db.collection(COLLECTIONS.rankingSnapshots).doc(period).set({
+        data: {
+          rankType: period,
+          updatedAt: capturedAt,
+          source: "syncGithubTrending",
+          items: (trendingByPeriod[period] || []).map((item, index) => ({
+            repoId: item.repoId,
+            rank: item.rank || index + 1,
+            starGrowth: item.starGrowth || 0
+          }))
+        }
+      })
+    )
+  );
+}
+
+async function fetchTrendingPayload(options = {}) {
+  const periods = normalizePeriods(options.periods);
+  const maxRepos = Math.min(Math.max(Number(options.maxRepos) || 10, 1), 25);
+  const capturedAt = options.capturedAt || new Date().toISOString();
   const token = options.token || getGithubToken();
 
-  if (!token) {
-    throw new Error("Missing GITHUB_TOKEN or GH_TOKEN for syncGithubRepos");
-  }
-
-  const queries =
-    Array.isArray(options.queries) && options.queries.length
-      ? options.queries
-      : getDefaultQueries();
-  const perPage = Math.min(Math.max(Number(options.perPage) || 5, 1), 20);
-  const maxRepos = Math.min(Math.max(Number(options.maxRepos) || 5, 1), 20);
-  const capturedAt = options.capturedAt || new Date().toISOString();
-
-  const results = await Promise.all(
-    queries.map((query) => searchRepositories({ token, query, perPage }))
+  const trendingGroups = await Promise.all(
+    periods.map(async (period) => ({
+      period,
+      items: await fetchTrendingRepositories({ since: period, maxRepos })
+    }))
   );
 
-  const repositoryMap = new Map();
+  const uniqueTrendingMap = new Map();
 
-  results.flat().forEach((repo) => {
-    const normalized = normalizeRepository(repo, capturedAt);
+  trendingGroups.forEach((group) => {
+    group.items.forEach((item) => {
+      const repoId = buildRepoId(item.fullName);
+      const normalized = Object.assign({}, item, {
+        repoId,
+        updatedAt: capturedAt,
+        lastSyncedAt: capturedAt
+      });
 
-    if (!normalized.repoId) {
-      return;
-    }
-
-    if (!repositoryMap.has(normalized.repoId)) {
-      repositoryMap.set(normalized.repoId, normalized);
-    }
+      if (!uniqueTrendingMap.has(repoId)) {
+        uniqueTrendingMap.set(repoId, normalized);
+      }
+    });
   });
+
+  const uniqueTrendingRepos = Array.from(uniqueTrendingMap.values());
+  const detailedRepositories = await Promise.all(
+    uniqueTrendingRepos.map(async (item) => {
+      try {
+        const apiRepo = await getRepositoryByFullName({
+          token,
+          fullName: item.fullName
+        });
+        return normalizeRepository(apiRepo, item, capturedAt);
+      } catch (error) {
+        return normalizeRepository(null, item, capturedAt);
+      }
+    })
+  );
+  const repositoryById = detailedRepositories.reduce((accumulator, repo) => {
+    accumulator[repo.repoId] = repo;
+    return accumulator;
+  }, {});
+  const trendingByPeriod = trendingGroups.reduce((accumulator, group) => {
+    accumulator[group.period] = group.items
+      .map((item, index) => {
+        const repoId = buildRepoId(item.fullName);
+
+        if (!repositoryById[repoId]) {
+          return null;
+        }
+
+        return Object.assign({}, repositoryById[repoId], {
+          rank: index + 1,
+          rankType: group.period,
+          starGrowth: item.starGrowth || 0
+        });
+      })
+      .filter(Boolean);
+    return accumulator;
+  }, {});
 
   return {
     capturedAt,
-    queries,
-    repositories: Array.from(repositoryMap.values()).slice(0, maxRepos)
+    periods,
+    repositories: detailedRepositories,
+    trendingByPeriod
   };
 }
 
 async function syncGithubRepos(db, options = {}) {
-  const payload = await fetchRepositories(options);
+  const payload = await fetchTrendingPayload(options);
 
   if (options.dryRun) {
     return {
       dryRun: true,
       capturedAt: payload.capturedAt,
-      queries: payload.queries,
+      periods: payload.periods,
       repositoryCount: payload.repositories.length,
-      repositories: payload.repositories
+      rankingPeriods: payload.periods.map((period) => ({
+        period,
+        itemCount: (payload.trendingByPeriod[period] || []).length
+      })),
+      repositories: payload.repositories.map((item) => ({
+        repoId: item.repoId,
+        fullName: item.fullName,
+        stars: item.stars
+      })),
+      samples: payload.periods.reduce((accumulator, period) => {
+        accumulator[period] = (payload.trendingByPeriod[period] || []).slice(0, 3).map((item) => ({
+          repoId: item.repoId,
+          fullName: item.fullName,
+          starGrowth: item.starGrowth
+        }));
+        return accumulator;
+      }, {})
     };
   }
 
   await writeRepositories(db, payload.repositories, payload.capturedAt);
+  await writeRankingSnapshots(db, payload.trendingByPeriod, payload.capturedAt);
 
   return {
     dryRun: false,
     capturedAt: payload.capturedAt,
-    queries: payload.queries,
+    periods: payload.periods,
     repositoryCount: payload.repositories.length,
     snapshotCount: payload.repositories.length,
+    rankingPeriods: payload.periods.map((period) => ({
+      period,
+      itemCount: (payload.trendingByPeriod[period] || []).length
+    })),
     repositories: payload.repositories.map((item) => ({
       repoId: item.repoId,
       fullName: item.fullName,
@@ -165,6 +271,6 @@ async function syncGithubRepos(db, options = {}) {
 module.exports = {
   COLLECTIONS,
   buildRepoId,
-  fetchRepositories,
+  fetchTrendingPayload,
   syncGithubRepos
 };
