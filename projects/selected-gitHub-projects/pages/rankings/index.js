@@ -45,10 +45,11 @@ Page({
 
     this.setData({
       favoriteMap,
-      items: this.data.items.map((item) => ({
-        ...item,
-        isFavorite: Boolean(favoriteMap[item.repoId])
-      }))
+      items: this.data.items.map((item) =>
+        Object.assign({}, item, {
+          isFavorite: Boolean(favoriteMap[item.repoId])
+        })
+      )
     });
   },
 
@@ -80,10 +81,11 @@ Page({
     getRankings(period)
       .then((result) => {
         const favoriteMap = getFavoriteMap();
-        const items = (result.items || []).map((item) => ({
-          ...item,
-          isFavorite: Boolean(favoriteMap[item.repoId])
-        }));
+        const items = (result.items || []).map((item) =>
+          Object.assign({}, item, {
+            isFavorite: Boolean(favoriteMap[item.repoId])
+          })
+        );
 
         this.setData({
           updatedAt: formatUpdatedAt(result.updatedAt),
