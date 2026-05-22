@@ -253,3 +253,73 @@
   color: #5f6d60;
   font-size: 24rpx;
 }
+
+.guide-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx;
+  box-sizing: border-box;
+  background: rgba(34, 40, 35, 0.4);
+}
+
+.guide-dialog {
+  width: 100%;
+  padding: 32rpx 28rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.guide-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.guide-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #2d3b2f;
+}
+
+.guide-close {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  background: #f1ecdf;
+  color: #60705f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34rpx;
+  line-height: 1;
+}
+
+.guide-intro {
+  font-size: 26rpx;
+  line-height: 1.7;
+  color: #556254;
+}
+
+.guide-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.guide-item {
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #667165;
+}
+
+.guide-button {
+  margin-top: 8rpx;
+  width: 100%;
+  box-sizing: border-box;
+}

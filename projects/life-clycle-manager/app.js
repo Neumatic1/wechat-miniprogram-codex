@@ -11,7 +11,5 @@ App({
     } catch (error) {
       console.warn("Cloud init skipped", error)
     }
-  },
-
-  globalData: {}
+  }
 })

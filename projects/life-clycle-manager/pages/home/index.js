@@ -6,6 +6,8 @@ const {
   getProfileSummary
 } = require("../../utils/item-store")
 
+const HOME_USAGE_GUIDE_SEEN_KEY = "life-cycle-home-usage-guide-seen-v1"
+
 function buildStatusTabs(activeStatus, counts) {
   return statusOptions.map((option) => {
     const isActive = option.value === activeStatus
@@ -37,7 +39,7 @@ Page({
   data: {
     hero: {
       title: "生活物品周期管家",
-      subtitle: "把该洗、该换、该处理的生活物品都安排得明明白白"
+      subtitle: "记下每件物品的使用日期、周期和提醒时间，到点就知道该清洗、该更换还是该处理。"
     },
     categoryOptions: getCategoryOptions(),
     statusTabs: [],
@@ -50,11 +52,13 @@ Page({
     emptyActionType: "",
     accountLabel: "游客模式",
     customTemplateCount: 0,
-    customTemplatesUnlocked: false
+    customTemplatesUnlocked: false,
+    showUsageGuide: false
   },
 
   onLoad() {
     this.refreshItems()
+    this.maybeShowUsageGuide()
   },
 
   onShow() {
@@ -153,5 +157,24 @@ Page({
     wx.navigateTo({
       url: "/pages/me/index"
     })
-  }
+  },
+
+  maybeShowUsageGuide() {
+    if (wx.getStorageSync(HOME_USAGE_GUIDE_SEEN_KEY)) {
+      return
+    }
+
+    wx.setStorageSync(HOME_USAGE_GUIDE_SEEN_KEY, true)
+    this.setData({
+      showUsageGuide: true
+    })
+  },
+
+  handleCloseUsageGuide() {
+    this.setData({
+      showUsageGuide: false
+    })
+  },
+
+  noop() {}
 })

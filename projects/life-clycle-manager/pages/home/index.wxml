@@ -102,3 +102,20 @@
     </view>
   </view>
 </view>
+
+<view wx:if="{{showUsageGuide}}" class="guide-mask" catchtap="handleCloseUsageGuide">
+  <view class="guide-dialog card" catchtap="noop">
+    <view class="guide-head">
+      <text class="guide-title">使用说明</text>
+      <view class="guide-close" bindtap="handleCloseUsageGuide">×</view>
+    </view>
+    <text class="guide-intro">这个小程序适合记录牙刷、床单、美妆、药品、食品等需要定期清洗、更换或处理的生活物品。</text>
+    <view class="guide-list">
+      <text class="guide-item">1. 先点“添加物品”，选择模板或自定义名称。</text>
+      <text class="guide-item">2. 设置使用日期、周期天数和提前提醒时间。</text>
+      <text class="guide-item">3. 回到首页后，优先查看“即将到期”和“已过期”提醒。</text>
+      <text class="guide-item">4. 处理完成后，点“已更换 / 已清洗 / 已到期”，系统会自动进入下一周期。</text>
+    </view>
+    <view class="button-primary guide-button" bindtap="handleCloseUsageGuide">我知道了</view>
+  </view>
+</view>
