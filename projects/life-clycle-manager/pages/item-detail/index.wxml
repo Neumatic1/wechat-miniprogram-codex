@@ -58,6 +58,7 @@
 
   <view class="card detail-actions">
     <text class="section-title">下一步建议</text>
+    <text class="detail-action-hint">点击“已{{item.actionLabel}}”后，会立即进入下一个处理周期</text>
     <view class="action-row">
       <view class="button-primary" bindtap="handleComplete">已{{item.actionLabel}}</view>
       <view class="button-secondary" bindtap="handleEdit">编辑</view>

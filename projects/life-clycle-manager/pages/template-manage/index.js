@@ -4,6 +4,8 @@ const {
   createCustomTemplate,
   updateCustomTemplate,
   deleteCustomTemplate,
+  actionOptions,
+  getActionMeta,
   readUnlockState,
   unlockCustomTemplates,
   getCategoryLabel,
@@ -13,18 +15,97 @@ const {
   createCustomCategory
 } = require("../../utils/item-store")
 
+const DEFAULT_REMIND_THRESHOLD_DAYS = 0
+const AUTO_REMIND_CATEGORIES = ["beauty", "medicine", "food"]
+
+const QUICK_CYCLE_OPTIONS = [
+  { value: "7", label: "7天", days: 7 },
+  { value: "30", label: "30天", days: 30 },
+  { value: "90", label: "90天", days: 90 }
+]
+
+const QUICK_REMIND_OPTIONS = [
+  { value: "0", label: "当天", days: 0 },
+  { value: "1", label: "1天前", days: 1 },
+  { value: "3", label: "3天前", days: 3 }
+]
+
+const CATEGORY_DEFAULT_ACTIONS = {
+  personal_care: "replace",
+  bedding: "wash",
+  home: "wash",
+  beauty: "expire",
+  medicine: "expire",
+  food: "expire",
+  kitchenware: "wash",
+  daily_use: "wash",
+  other: "expire"
+}
+
+function getDefaultActionType(category) {
+  return CATEGORY_DEFAULT_ACTIONS[category] || actionOptions[0].value
+}
+
+function getCyclePreset(cycleDays) {
+  const days = Number(cycleDays)
+  if (days === 7 || days === 30 || days === 90) {
+    return `${days}`
+  }
+  return ""
+}
+
+function getRemindPreset(remindThresholdDays) {
+  const days = Number(remindThresholdDays)
+  if (days === 0 || days === 1 || days === 3) {
+    return `${days}`
+  }
+  return ""
+}
+
+function isAutoRemindCategory(category) {
+  return AUTO_REMIND_CATEGORIES.includes(category)
+}
+
+function getAutoRemindThreshold(cycleDays) {
+  const days = Number(cycleDays)
+  if (!days || days <= 0) {
+    return DEFAULT_REMIND_THRESHOLD_DAYS
+  }
+  return Math.ceil(days / 5)
+}
+
+function buildRemindUiState(form) {
+  if (isAutoRemindCategory(form.category)) {
+    return {
+      showRemindQuickOptions: false,
+      remindHelperText: "美妆、药品、食品默认按周期天数的 1/5 向上取整提醒",
+      activeRemindPreset: ""
+    }
+  }
+
+  return {
+    showRemindQuickOptions: true,
+    remindHelperText: "",
+    activeRemindPreset: getRemindPreset(form.remindThresholdDays)
+  }
+}
+
 function getCustomTemplates() {
   return getAllTemplates()
     .filter((template) => template.isCustom)
     .map((template) => ({
       ...template,
-      categoryLabel: getCategoryLabel(template.category)
+      categoryLabel: getCategoryLabel(template.category),
+      actionLabel: getActionMeta(template.actionType).label
     }))
 }
 
 Page({
   data: {
     categoryOptions: getCategoryOptions(),
+    cycleQuickOptions: QUICK_CYCLE_OPTIONS,
+    remindQuickOptions: QUICK_REMIND_OPTIONS,
+    actionOptions,
     unlocked: false,
     customTemplates: [],
     customCategories: [],
@@ -33,7 +114,11 @@ Page({
     editingId: "",
     sharePendingUnlock: false,
     formCategoryLabel: getCategoryOptions()[0].label,
-    newCategoryName: ""
+    newCategoryName: "",
+    activeCyclePreset: getCyclePreset(getDefaultTemplateForm().cycleDays),
+    ...buildRemindUiState(getDefaultTemplateForm()),
+    cycleInputFocus: false,
+    remindInputFocus: false
   },
 
   onLoad() {
@@ -54,7 +139,9 @@ Page({
       customCategories: getCustomCategories(),
       customCategoryRemainingCount: getCustomCategoryRemainingCount(),
       categoryOptions,
-      formCategoryLabel: matchedCategory ? matchedCategory.label : categoryOptions[0].label
+      formCategoryLabel: matchedCategory ? matchedCategory.label : categoryOptions[0].label,
+      activeCyclePreset: getCyclePreset(this.data.form.cycleDays),
+      ...buildRemindUiState(this.data.form)
     })
   },
 
@@ -64,7 +151,11 @@ Page({
     this.setData({
       editingId: "",
       form,
-      formCategoryLabel: categoryOptions[0].label
+      formCategoryLabel: categoryOptions[0].label,
+      activeCyclePreset: getCyclePreset(form.cycleDays),
+      ...buildRemindUiState(form),
+      cycleInputFocus: false,
+      remindInputFocus: false
     })
   },
 
@@ -81,10 +172,15 @@ Page({
         id: target.id,
         name: target.name,
         category: target.category,
+        actionType: target.actionType,
         cycleDays: target.cycleDays,
         remindThresholdDays: target.remindThresholdDays
       },
-      formCategoryLabel: target.categoryLabel
+      formCategoryLabel: target.categoryLabel,
+      activeCyclePreset: getCyclePreset(target.cycleDays),
+      ...buildRemindUiState(target),
+      cycleInputFocus: false,
+      remindInputFocus: false
     })
   },
 
@@ -124,21 +220,124 @@ Page({
 
   handleCategoryChange(event) {
     const nextCategory = this.data.categoryOptions[event.detail.value]
+    const nextForm = {
+      ...this.data.form,
+      category: nextCategory.value,
+      actionType: getDefaultActionType(nextCategory.value),
+      remindThresholdDays: isAutoRemindCategory(nextCategory.value)
+        ? getAutoRemindThreshold(this.data.form.cycleDays)
+        : this.data.form.remindThresholdDays
+    }
     this.setData({
-      "form.category": nextCategory.value,
-      formCategoryLabel: nextCategory.label
+      form: nextForm,
+      formCategoryLabel: nextCategory.label,
+      ...buildRemindUiState(nextForm)
+    })
+  },
+
+  handleActionTap(event) {
+    const { value } = event.currentTarget.dataset
+    this.setData({
+      "form.actionType": value
+    })
+  },
+
+  handleCyclePresetTap(event) {
+    const { value } = event.currentTarget.dataset
+    const selectedOption = QUICK_CYCLE_OPTIONS.find((option) => option.value === value)
+    if (!selectedOption) {
+      return
+    }
+
+    const nextForm = {
+      ...this.data.form,
+      cycleDays: selectedOption.days,
+      remindThresholdDays: isAutoRemindCategory(this.data.form.category)
+        ? getAutoRemindThreshold(selectedOption.days)
+        : this.data.form.remindThresholdDays
+    }
+
+    this.setData({
+      form: nextForm,
+      activeCyclePreset: selectedOption.value,
+      ...buildRemindUiState(nextForm),
+      cycleInputFocus: false,
+      remindInputFocus: false
+    })
+  },
+
+  handleFocusCycleInput() {
+    this.setData({
+      cycleInputFocus: true,
+      remindInputFocus: false
     })
   },
 
   handleCycleInput(event) {
+    const value = event.detail.value.replace(/[^\d]/g, "")
+    const nextForm = {
+      ...this.data.form,
+      cycleDays: value,
+      remindThresholdDays: isAutoRemindCategory(this.data.form.category)
+        ? getAutoRemindThreshold(value)
+        : this.data.form.remindThresholdDays
+    }
+
     this.setData({
-      "form.cycleDays": event.detail.value
+      form: nextForm,
+      activeCyclePreset: getCyclePreset(value),
+      ...buildRemindUiState(nextForm)
+    })
+  },
+
+  handleCycleBlur() {
+    this.setData({
+      cycleInputFocus: false
+    })
+  },
+
+  handleFocusRemindInput() {
+    this.setData({
+      cycleInputFocus: false,
+      remindInputFocus: true
     })
   },
 
   handleRemindInput(event) {
+    const value = event.detail.value.replace(/[^\d]/g, "")
+    const nextForm = {
+      ...this.data.form,
+      remindThresholdDays: value
+    }
+
     this.setData({
-      "form.remindThresholdDays": event.detail.value
+      form: nextForm,
+      ...buildRemindUiState(nextForm)
+    })
+  },
+
+  handleRemindPresetTap(event) {
+    const { value } = event.currentTarget.dataset
+    const selectedOption = QUICK_REMIND_OPTIONS.find((option) => option.value === value)
+    if (!selectedOption) {
+      return
+    }
+
+    const nextForm = {
+      ...this.data.form,
+      remindThresholdDays: selectedOption.days
+    }
+
+    this.setData({
+      form: nextForm,
+      ...buildRemindUiState(nextForm),
+      remindInputFocus: false
+    })
+  },
+
+  handleRemindBlur() {
+    this.setData({
+      remindInputFocus: false
     })
   },
 
@@ -169,8 +368,17 @@ Page({
       customCategories: getCustomCategories(),
       customCategoryRemainingCount: getCustomCategoryRemainingCount(),
       newCategoryName: "",
-      "form.category": result.category.value,
-      formCategoryLabel: result.category.label
+      form: {
+        ...this.data.form,
+        category: result.category.value,
+        actionType: getDefaultActionType(result.category.value)
+      },
+      formCategoryLabel: result.category.label,
+      ...buildRemindUiState({
+        ...this.data.form,
+        category: result.category.value,
+        actionType: getDefaultActionType(result.category.value)
+      })
     })
     wx.showToast({
       title: "已新增分类",

@@ -77,7 +77,7 @@
 
       <view class="form-field">
         <text class="field-label">{{startLabel}}</text>
-        <picker mode="date" value="{{form.startAt}}" bindchange="handleStartDateChange">
+        <picker mode="date" value="{{form.startAt}}" end="{{today}}" bindchange="handleStartDateChange">
           <view class="field-picker">{{form.startAt}}</view>
         </picker>
       </view>

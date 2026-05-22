@@ -1,5 +1,7 @@
 const { getItemById, completeItem, deleteItem } = require("../../utils/item-store")
 
+const HOME_TAB_URL = "/pages/home/index"
+
 Page({
   data: {
     item: null,
@@ -78,19 +80,22 @@ Page({
           icon: "success"
         })
         setTimeout(() => {
-          wx.redirectTo({
-            url: "/pages/home/index"
-          })
+          this.navigateHome()
         }, 300)
       }
     })
   },
 
   handleBackHome() {
-    wx.navigateBack({
+    this.navigateHome()
+  },
+
+  navigateHome() {
+    wx.switchTab({
+      url: HOME_TAB_URL,
       fail() {
-        wx.redirectTo({
-          url: "/pages/home/index"
+        wx.reLaunch({
+          url: HOME_TAB_URL
         })
       }
     })

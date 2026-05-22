@@ -15,6 +15,7 @@ const {
 
 const DEFAULT_REMIND_THRESHOLD_DAYS = 0
 const AUTO_REMIND_CATEGORIES = ["beauty", "medicine", "food"]
+const HOME_TAB_URL = "/pages/home/index"
 
 const QUICK_CYCLE_OPTIONS = [
   { value: "7", label: "7天", days: 7 },
@@ -183,7 +184,8 @@ Page({
     activeCyclePreset: getCyclePreset(initialForm.cycleDays),
     ...initialRemindUiState,
     cycleInputFocus: false,
-    remindInputFocus: false
+    remindInputFocus: false,
+    today: getTodayString()
   },
 
   onLoad(options) {
@@ -215,6 +217,9 @@ Page({
   },
 
   onShow() {
+    this.setData({
+      today: getTodayString()
+    })
     this.refreshTemplateState()
   },
 
@@ -264,6 +269,7 @@ Page({
       templateId: template.id,
       name: shouldPreserveEditedValues ? this.data.form.name : template.name,
       category: template.category,
+      actionType: template.actionType,
       cycleDays: template.cycleDays,
       startAt: shouldPreserveEditedValues ? this.data.form.startAt : getTodayString(),
       remindThresholdDays: isAutoRemind
@@ -303,8 +309,11 @@ Page({
   },
 
   handleStartDateChange(event) {
+    const today = getTodayString()
+    const nextStartAt = event.detail.value > today ? today : event.detail.value
     this.setData({
-      "form.startAt": event.detail.value
+      "form.startAt": nextStartAt,
+      today
     })
   },
 
@@ -489,6 +498,7 @@ Page({
 
   handleSubmit() {
     const { form, submitting, isEditMode, editingId } = this.data
+    const today = getTodayString()
 
     if (submitting) {
       return
@@ -501,6 +511,15 @@ Page({
 
     if (!form.startAt) {
       wx.showToast({ title: "请选择日期", icon: "none" })
+      return
+    }
+
+    if (form.startAt > today) {
+      wx.showToast({ title: "使用日期不能晚于今天", icon: "none" })
+      this.setData({
+        "form.startAt": today,
+        today
+      })
       return
     }
 
@@ -533,8 +552,24 @@ Page({
     })
 
     setTimeout(() => {
-      wx.redirectTo({
-        url: `/pages/item-detail/index?id=${item.id}`
+      if (isEditMode) {
+        wx.navigateBack({
+          fail() {
+            wx.redirectTo({
+              url: `/pages/item-detail/index?id=${item.id}`
+            })
+          }
+        })
+        return
+      }
+
+      wx.switchTab({
+        url: HOME_TAB_URL,
+        fail() {
+          wx.reLaunch({
+            url: HOME_TAB_URL
+          })
+        }
       })
     }, 300)
   }

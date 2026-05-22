@@ -42,6 +42,18 @@ const actionOptions = [
   { value: "expire", label: "到期", startLabel: "开始记录日期" }
 ]
 
+const CATEGORY_DEFAULT_ACTIONS = {
+  personal_care: "replace",
+  bedding: "wash",
+  home: "wash",
+  beauty: "expire",
+  medicine: "expire",
+  food: "expire",
+  kitchenware: "wash",
+  daily_use: "wash",
+  other: "expire"
+}
+
 const statusOptions = [
   { value: "all", label: "全部" },
   { value: "upcoming", label: "即将到期" },
@@ -1196,6 +1208,10 @@ function getActionMeta(actionType) {
   return actionOptions.find((option) => option.value === actionType) || actionOptions[0]
 }
 
+function getDefaultActionTypeByCategory(category) {
+  return CATEGORY_DEFAULT_ACTIONS[category] || actionOptions[0].value
+}
+
 function getActionVerb(actionType) {
   const mapping = {
     replace: "更换",
@@ -1208,6 +1224,7 @@ function getActionVerb(actionType) {
 function decorateTemplate(template) {
   return {
     ...template,
+    actionType: template.actionType || getDefaultActionTypeByCategory(template.category),
     isCustom: template.id.indexOf("custom-template-") === 0
   }
 }
@@ -1240,7 +1257,7 @@ function createCustomTemplate(payload) {
     id: `custom-template-${Date.now()}`,
     name: payload.name.trim(),
     category: payload.category,
-    actionType: actionOptions[0].value,
+    actionType: payload.actionType || getDefaultActionTypeByCategory(payload.category),
     cycleDays: Number(payload.cycleDays),
     remindThresholdDays: Number(payload.remindThresholdDays),
     recommendedText: `${Number(payload.cycleDays)} 天`
@@ -1259,6 +1276,7 @@ function updateCustomTemplate(payload) {
 
   target.name = payload.name.trim()
   target.category = payload.category
+  target.actionType = payload.actionType || target.actionType || getDefaultActionTypeByCategory(payload.category)
   target.cycleDays = Number(payload.cycleDays)
   target.remindThresholdDays = Number(payload.remindThresholdDays)
   target.recommendedText = `${Number(payload.cycleDays)} 天`
@@ -1277,6 +1295,7 @@ function getDefaultTemplateForm() {
     id: "",
     name: "",
     category: options[0].value,
+    actionType: getDefaultActionTypeByCategory(options[0].value),
     cycleDays: 30,
     remindThresholdDays: 3
   }

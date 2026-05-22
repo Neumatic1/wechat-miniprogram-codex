@@ -94,6 +94,12 @@
   gap: 12rpx;
 }
 
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
 .field-label {
   font-size: 24rpx;
   color: #667165;
@@ -119,6 +125,26 @@
 
 .field-half {
   flex: 1;
+}
+
+.field-input-wrap {
+  width: 100%;
+}
+
+.cycle-quick-row {
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.quick-cycle-chip {
+  padding: 10rpx 18rpx;
+  font-size: 22rpx;
+}
+
+.field-helper {
+  font-size: 20rpx;
+  line-height: 1.5;
+  color: #8a9288;
 }
 
 .form-actions,
