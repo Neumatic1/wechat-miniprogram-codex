@@ -1,7 +1,12 @@
 {
   "description": "生活物品周期管家",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "file",
+        "value": "*.md"
+      }
+    ],
     "include": []
   },
   "setting": {
